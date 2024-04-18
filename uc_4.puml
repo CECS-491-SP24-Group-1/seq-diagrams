@@ -1,0 +1,12 @@
+@startuml uc04
+title Use Case #4: Delete Chat
+hide footbox
+
+'Setup the objects involved here
+
+'Setup persistent objects here
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml

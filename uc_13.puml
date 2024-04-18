@@ -1,0 +1,12 @@
+@startuml uc13
+title Use Case #13: Check Key Revocation
+hide footbox
+
+'Setup the objects involved here
+
+'Setup persistent objects here
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml

@@ -1,0 +1,12 @@
+@startuml uc05
+title Use Case #5: Decrypt Vault
+hide footbox
+
+'Setup the objects involved here
+
+'Setup persistent objects here
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml

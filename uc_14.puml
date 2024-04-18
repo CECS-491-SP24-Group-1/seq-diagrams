@@ -1,0 +1,12 @@
+@startuml uc14
+title Use Case #14: Delete Conversation
+hide footbox
+
+'Setup the objects involved here
+
+'Setup persistent objects here
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml

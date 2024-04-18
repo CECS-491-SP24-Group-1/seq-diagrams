@@ -1,0 +1,12 @@
+@startuml uc16
+title Use Case #16: Receive Message
+hide footbox
+
+'Setup the objects involved here
+
+'Setup persistent objects here
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml
