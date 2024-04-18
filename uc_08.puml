@@ -1,6 +1,9 @@
 @startuml uc08
-title Use Case #8: Challenge User
+title "Use Case #8: Challenge User"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

@@ -1,6 +1,9 @@
 @startuml uc14
-title Use Case #14: Delete Conversation
+title "Use Case #14: Delete Conversation"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

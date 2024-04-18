@@ -1,6 +1,9 @@
 @startuml uc05
-title Use Case #5: Decrypt Vault
+title "Use Case #5: Decrypt Vault"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

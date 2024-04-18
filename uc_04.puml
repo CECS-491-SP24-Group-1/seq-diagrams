@@ -1,6 +1,9 @@
 @startuml uc04
-title Use Case #4: Delete Chat
+title "Use Case #4: Delete Chat"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

@@ -1,6 +1,9 @@
 @startuml uc15
-title Use Case #15: Send Message
+title "Use Case #15: Send Message"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

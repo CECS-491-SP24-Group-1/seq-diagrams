@@ -1,6 +1,9 @@
 @startuml uc02
-title Use Case #2: User Login
+title "Use Case #2: User Login"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

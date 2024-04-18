@@ -1,6 +1,9 @@
 @startuml uc06
-title Use Case #6: Delete Account
+title "Use Case #6: Delete Account"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

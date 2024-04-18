@@ -1,6 +1,9 @@
 @startuml uc01
-title Use Case #1: Create Account
+title "Use Case #1: Create Account"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

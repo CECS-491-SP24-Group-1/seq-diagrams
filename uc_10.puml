@@ -1,6 +1,9 @@
 @startuml uc10
-title Use Case #10: Enter Conversation
+title "Use Case #10: Enter Conversation"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

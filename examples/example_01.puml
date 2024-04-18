@@ -1,0 +1,36 @@
+@startuml example
+title "Example Sequence Diagram"
+
+'Styling goes here
+hide footbox
+skinparam stereotypePosition bottom
+
+'Setup the objects involved here
+actor Sender as s <<Actor>> #red
+boundary Conversation as sc <<Boundary>> #red
+entity Session as ss <<Entity>> #red
+control Server as srv <<Control>>
+entity Session as rs <<Entity>> #blue
+boundary Conversation as rc <<Boundary>> #blue
+actor Receiver as r <<Actor>> #blue
+
+'Setup persistent objects here
+activate s
+activate srv
+activate r
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'Sender creates a conversation and ends the request to the receiver
+s -> sc: create
+activate sc
+sc -> srv: requestUser()
+srv -> r: converseWithUser()
+
+'Receiver accepts the conversation and sends ACK to the sender
+r -> rc: create
+activate rc
+rc -> srv: requestAck()
+srv -> s: converseWithUser()
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml

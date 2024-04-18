@@ -1,6 +1,9 @@
 @startuml uc09
-title Use Case #9: Generate Passphrase
+title "Use Case #9: Generate Passphrase"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 

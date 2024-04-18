@@ -1,6 +1,9 @@
 @startuml uc16
-title Use Case #16: Receive Message
+title "Use Case #16: Receive Message"
+
+'Styling goes here
 hide footbox
+skinparam stereotypePosition bottom
 
 'Setup the objects involved here
 
