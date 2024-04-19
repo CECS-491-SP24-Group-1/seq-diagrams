@@ -4,6 +4,7 @@ title "Use Case #1: Create Account"
 'Styling goes here
 hide footbox
 skinparam stereotypePosition bottom
+skinparam sequenceMessageAlign direction
 skinparam sequence {
 	LifeLineBorderColor #Silver
 	LifeLineBackgroundColor #Gainsboro

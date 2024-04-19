@@ -4,6 +4,7 @@ title "Use Case #13: Check Key Revocation"
 'Styling goes here
 hide footbox
 skinparam stereotypePosition bottom
+skinparam sequenceMessageAlign direction
 skinparam sequence {
 	LifeLineBorderColor #Silver
 	LifeLineBackgroundColor #Gainsboro
