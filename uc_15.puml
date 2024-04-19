@@ -4,6 +4,10 @@ title "Use Case #15: Send Message"
 'Styling goes here
 hide footbox
 skinparam stereotypePosition bottom
+skinparam sequence {
+	LifeLineBorderColor #Silver
+	LifeLineBackgroundColor #Gainsboro
+}
 
 'Setup the objects involved here
 
