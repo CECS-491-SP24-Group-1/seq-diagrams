@@ -63,8 +63,6 @@ vm -> svs: informSuccessfulSave()
 svs -> svs: showSaveSuccessful()
 u -> svs: clicks "Ok"
 deactivate svs
-
-
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
