@@ -11,10 +11,39 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary SaveVaultScreen as svs <<Boundary>>
+boundary ProvideSecretsScreen as pss <<Boundary>>
+control VaultManager as vm <<Control>>
+entity Vault as v <<Entity>>
+entity EVault as ev <<Entity>>
+boundary DeviceStorage as ds <<Boundary>>
 
 'Setup persistent objects here
+activate u
+activate vm
+activate ds
+
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'The user makes a change to the vault in some way.
+'The user is prompted to provide a secret; can differ from the one previously provided.
+activate svs
+svs -> svs: promptToSave()
+u -> svs: clicks "Provide Secret"
+svs -> pss: show()
+activate pss
+pss -> pss: promptForSecret()
+
+'The user provides a secret to encrypt the vault with.
+u -> pss: provides secret, incl type
+pss -> vm: provideUserSecret()
+
+
+
+
+
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
