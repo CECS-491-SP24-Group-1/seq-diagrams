@@ -23,7 +23,7 @@ boundary DeviceStorage as ds <<Boundary>>
 activate u
 activate vm
 activate ds
-
+activate v
 
 '--- FLOW OF CONTROL STARTS HERE ---
 'The user makes a change to the vault in some way.
@@ -37,11 +37,32 @@ pss -> pss: promptForSecret()
 
 'The user provides a secret to encrypt the vault with.
 u -> pss: provides secret, incl type
+u -> pss: clicks "Confirm"
 pss -> vm: provideUserSecret()
+deactivate pss
 
+'The device transforms the secret into an equivalent symmetric key.
+vm -> vm: generateSymmetricKey()
 
+'The symmetric key is used to encrypt the contents of the vault.
+vm -> v: encrypt()
+v -> ev: createEV()
+activate ev
 
+'The encrypted vault is saved to local device storage.
+vm -> ev: saveToDevice()
+ev -> ds: saveToDevice()
+deactivate ev
 
+'The old vault is deleted, if one already exists.
+ds -> ds: deleteEVIfExists()
+
+'Cleanup
+ds -> vm: informSuccessfulSave()
+vm -> svs: informSuccessfulSave()
+svs -> svs: showSaveSuccessful()
+u -> svs: clicks "Ok"
+deactivate svs
 
 
 '--- FLOW OF CONTROL ENDS HERE   ---
