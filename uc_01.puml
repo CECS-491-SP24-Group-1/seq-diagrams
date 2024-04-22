@@ -1,6 +1,7 @@
 @startuml uc01
 title "Use Case #1: Create Account"
 
+
 'Styling goes here
 hide footbox
 skinparam stereotypePosition bottom
@@ -11,10 +12,37 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+entity Vault as v <<Entity>>
+boundary RegistrationWindow as rw <<boundary>>
+control RegisterUserRoute as rur <<Control>>
 
 'Setup persistent objects here
+activate u 
+activate a
+activate rur
+
 
 '--- FLOW OF CONTROL STARTS HERE ---
+' User selects “Create Account” on the front page.
+u -> a: Selects “Create Account”
+
+' System shows a form to create the account.
+activate rw
+a -> rw: showWindow()
+
+' User enters email address, username and click "Create account"
+u -> rw: Enters email, username and clicks "Create account"
+
+' User device send a request to the server to create an account
+rw -> rur: POST /users/register
+deactivate rw
+rur -> rur: ensureNonexistantUser(userCollection, username)
+rur -> rur: createAccount(email, username)
+rur -> rur: Create challenge and send to user email
+rur --> a: RESP json::{"status": "success", "message": "Account created successfully, please verify email"}
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
