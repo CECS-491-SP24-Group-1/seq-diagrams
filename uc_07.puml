@@ -60,14 +60,15 @@ v --> vm: return: EVault object
 
 'The encrypted vault is saved to local device storage.
 vm -> ds: saveToDevice(evault)
-vm -> ev: destroy()
-deactivate ev
+
 
 'The old vault is deleted, if one already exists.
 ds -> ds: deleteEVIfExists()
 
 'Cleanup
 ds --> vm: return: save successful
+vm -> ev: destroy()
+deactivate ev
 vm --> svs: return: save successful
 svs -> u: showSaveSuccessful
 u -> svs: clicks "Ok"
