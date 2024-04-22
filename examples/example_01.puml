@@ -10,6 +10,18 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend bottom
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Sender|
+	|<#blue> | Receiver|
+endlegend
+
 'Setup the objects involved here
 actor Sender as s <<Actor>> #red
 boundary Conversation as sc <<Boundary>> #red
