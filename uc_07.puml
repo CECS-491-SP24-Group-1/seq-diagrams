@@ -32,15 +32,16 @@ activate v
 u -> a: <makes some change to the vault>
 a -> vm: edit()
 vm -> v: edit()
+vm --> a: return: changes made
 
 'The user is prompted to provide a secret; can differ from the one previously provided.
 a -> svs: show()
 activate svs
-svs -> svs: promptToSave()
+svs -> u: promptToSave
 u -> svs: clicks "Provide Secret"
 svs -> pss: show()
 activate pss
-pss -> pss: promptForSecret()
+pss -> u: promptForSecret
 
 'The user provides a secret to encrypt the vault with.
 u -> pss: provides secret, incl type
@@ -49,25 +50,26 @@ pss -> vm: provideUserSecret()
 deactivate pss
 
 'The device transforms the secret into an equivalent symmetric key.
-vm -> vm: generateSymmetricKey()
+vm -> vm: generateSymmetricKey(secret)
 
 'The symmetric key is used to encrypt the contents of the vault.
 vm -> v: encrypt()
-v -> ev: createEV()
+v --> ev: create: EVault object
 activate ev
+v --> vm: return: EVault object
 
 'The encrypted vault is saved to local device storage.
-vm -> ev: saveToDevice()
-ev -> ds: saveToDevice()
+vm -> ds: saveToDevice(evault)
+vm -> ev: destroy()
 deactivate ev
 
 'The old vault is deleted, if one already exists.
 ds -> ds: deleteEVIfExists()
 
 'Cleanup
-ds -> vm: informSuccessfulSave()
-vm -> svs: informSuccessfulSave()
-svs -> svs: showSaveSuccessful()
+ds --> vm: return: save successful
+vm --> svs: return: save successful
+svs -> u: showSaveSuccessful
 u -> svs: clicks "Ok"
 deactivate svs
 '--- FLOW OF CONTROL ENDS HERE   ---
