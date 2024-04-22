@@ -29,12 +29,12 @@ activate ss
 u -> a: <does an action to trigger \nshow() on "ProvideSecretsScreen">
 a -> pss: show()
 activate pss
-pss -> u: promptForSecret()
+pss -> u: promptForSecret
 u -> pss: selects "Passphrase" \nas the secret type
 u -> pss: clicks "Confirm"
 pss -> gps: show()
 activate gps
-gps -> u: promptForOptions()
+gps -> u: promptForOptions
 u -> gps: provides passphrase options \nclicks "Confirm"
 
 'TODO: Might want to shit passphrase generation from serverside to clientside
@@ -43,7 +43,7 @@ gps -> pr: POST /api/passphrase_gen json::options
 
 'Server picks a format from a pre-defined list of formats.
 pr -> ss: getWordlists()
-ss --> pr: <passphrase lists>
+ss --> pr: return: passphrase lists
 
 'Server chooses random phrases from the wordlist.
 pr -> pr: chooseWords(options) -> words
@@ -53,7 +53,7 @@ pr -> pr: fmt(words, options)
 
 'Server sends the passphrase back to the user.
 pr --> gps: RESP json::result
-gps -> u: showPassphrase()
+gps -> u: showPassphrase
 u -> gps: clicks "Ok"
 deactivate gps
 
