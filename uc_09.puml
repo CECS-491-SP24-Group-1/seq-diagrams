@@ -11,10 +11,54 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary ProvideSecretsScreen as pss <<Boundary>>
+boundary GeneratePassphraseScreen as gps <<Boundary>>
+control PassphraseRoute as pr <<Control>>
+boundary ServerStorage as ss <<Boundary>>
 
 'Setup persistent objects here
+activate u
+activate a
+activate pr
+activate ss
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'User requests a passphrase from the server along with options such as number of words in the phrase.
+u -> a: <does an action to trigger \nshow() on "ProvideSecretsScreen">
+a -> pss: show()
+activate pss
+pss -> u: promptForSecret()
+u -> pss: selects "Passphrase" \nas the secret type
+u -> pss: clicks "Confirm"
+pss -> gps: show()
+activate gps
+gps -> u: promptForOptions()
+u -> gps: provides passphrase options \nclicks "Confirm"
+
+'TODO: Might want to shit passphrase generation from serverside to clientside
+'Request is made to the server with the user's options
+gps -> pr: POST /api/passphrase_gen json::options
+
+'Server picks a format from a pre-defined list of formats.
+pr -> ss: getWordlists()
+ss --> pr: <passphrase lists>
+
+'Server chooses random phrases from the wordlist.
+pr -> pr: chooseWords(options) -> words
+
+'Server formats the passphrase according to the chosen format and user request.
+pr -> pr: fmt(words, options)
+
+'Server sends the passphrase back to the user.
+pr --> gps: RESP json::result
+gps -> u: showPassphrase()
+u -> gps: clicks "Ok"
+deactivate gps
+
+'Cleanup
+u -> pss: provides passphrase \nclicks "Confirm"
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
