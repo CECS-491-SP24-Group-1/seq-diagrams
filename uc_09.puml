@@ -23,13 +23,18 @@ activate u
 activate a
 activate pr
 activate ss
+activate pss
 
 '--- FLOW OF CONTROL STARTS HERE ---
 'User requests a passphrase from the server along with options such as number of words in the phrase.
-u -> a: <does an action to trigger \nshow() on "ProvideSecretsScreen">
-a -> pss: show()
-activate pss
-pss -> u: promptForSecret
+'u -> a: <does an action to trigger \nshow() on "ProvideSecretsScreen">
+'a -> pss: show()
+'activate pss
+'pss -> u: promptForSecret
+
+... +++ invocation of this use case occurs +++ ...
+
+
 u -> pss: selects "Passphrase" \nas the secret type
 u -> pss: clicks "Confirm"
 pss -> gps: show()
@@ -58,7 +63,10 @@ u -> gps: clicks "Ok"
 deactivate gps
 
 'Cleanup
-u -> pss: provides passphrase \nclicks "Confirm"
+... +++ flow handed back to calling use case +++ ...
+
+'Cleanup
+'u -> pss: provides passphrase \nclicks "Confirm"
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
