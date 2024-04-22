@@ -11,10 +11,61 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary OpenVaultScreen as ovs <<Boundary>>
+boundary ProvideSecretsScreen as pss <<Boundary>>
+control VaultManager as vm <<Control>>
+entity Vault as v <<Entity>>
+entity EVault as ev <<Entity>>
+boundary DeviceStorage as ds <<Boundary>>
 
 'Setup persistent objects here
+activate u
+activate a
+activate vm
+activate ds
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'User presents secret to the user interface.
+u -> a: <triggers app to \nprompt for secrets>
+
+'The user is prompted to provide a secret; can differ from the one previously provided.
+a -> ovs: show()
+activate ovs
+ovs -> ovs: promptToOpen()
+u -> ovs: clicks "Provide Secret"
+ovs -> pss: show()
+activate pss
+pss -> pss: promptForSecret()
+
+'The user provides a secret to decrypt the vault with.
+u -> pss: provides secret, incl type
+u -> pss: clicks "Confirm"
+pss -> vm: provideUserSecret()
+deactivate pss
+
+'The secret is converted into its equivalent symmetric key.
+vm -> vm: generateSymmetricKey()
+
+'The vault is decrypted using the symmetric key.
+vm -> ds: loadEV()
+ds -> ev: load()
+activate ev
+ds -> vm: informSuccessfulLoad()
+vm -> ev: decrypt()
+
+'The vault is loaded into memory as the transient in-memory vault.
+ev -> v: createV()
+activate v
+v -> vm: informSuccessfulDecrypt()
+deactivate ev
+vm -> ovs: informSuccessfulDecrypt()
+
+'Cleanup
+ovs -> ovs: showDecryptSuccessful()
+u -> ovs: clicks "Ok"
+deactivate ovs
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
