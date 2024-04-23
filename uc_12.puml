@@ -11,10 +11,47 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary LookupUserScreen as lus <<Boundary>>
+control LookupUsersRoute as lur <<Control>>
+control DatabaseManager as dbm <<Control>>
 
 'Setup persistent objects here
+activate u
+activate a
+activate lur
+activate dbm
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'User sends UUID or username to server.
+u -> a: opens screen to lookup a user
+a -> lus: show()
+activate lus
+lus -> u: prompt for username or UUID
+u -> lus: provides valid username or\n UUID; Clicks 'Submit" button
+
+'Server responds with user’s public key, username, and UUID.
+lus -> lur: POST /users/lookup json::query
+lur -> dbm: QUERY UUID|username
+
+alt record exists
+
+	dbm --> lur: return: user info
+	lur --> lus: RESP json::user_info
+	lus -> u: show user info for request
+
+else no record found
+
+	dbm --> lur: return: error_no_record_found
+	lur --> lus: RESP json::error_no_record_found
+	lus -> u: shows error stating \nuser info wasn't found
+
+end
+
+'Cleanup
+u -> lus: clicks "Ok"
+deactivate lus
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
