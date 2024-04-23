@@ -57,7 +57,7 @@ rur -> db: QUERY username|email
 
 group User exists
 	db --> rur: return: username exists || email exists
-	rur --> rw: RESP json::{"status": "error", "message": "User already exists"}
+	rur --> rw: RESP json::{error, user_already_exists}
 	rw -> u: show error stating \nuser already exists
 	rnote over u
 	Flow of control prematurely ends here
@@ -80,7 +80,7 @@ group User doesn't exist
 	rur -> db: PUT eChall, pkChall
 
 	'Server sends the response back and it's confirmed.
-	rur --> rw: RESP json::{user.id, redact(user.email), challengeIDs, token}
+	rur --> rw: RESP json::{success, user.id, redact(user.email), challengeIDs, token}
 	rw -> u: show account details plus instructions \non how to complete challenges
 	u -> rw: clicks "Confirm Account Creation"
 end

@@ -39,13 +39,13 @@ krr -> dbm: QUERY public_key
 group record exists; key is not revoked
 
 	dbm --> krr: return: not_revoked
-	krr --> krs: RESP json::not_revoked
+	krr --> krs: RESP json::{success, not_revoked}
 	krs -> u: key is not revoked; \nsafe to communicate
 end
 group record exists; key is revoked
 
 	dbm --> krr: return: revoked_since
-	krr --> krs: RESP json::revoked_since
+	krr --> krs: RESP json::{success, revoked_since}
 	krs -> u: key is revoked; \nnot safe to communicate
 end
 
@@ -53,7 +53,7 @@ end
 group no record found
 
 	dbm --> krr: return: error_no_record_found
-	krr --> krs: RESP json::error_no_record_found
+	krr --> krs: RESP json::{error, no_record_found}
 	krs -> u: key is not in system; \nnot safe to communicate
 
 end

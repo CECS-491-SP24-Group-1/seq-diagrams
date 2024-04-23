@@ -57,7 +57,7 @@ pr -> pr: chooseWords(options) -> words
 pr -> pr: fmt(words, options)
 
 'Server sends the passphrase back to the user.
-pr --> gps: RESP json::result
+pr --> gps: RESP json::{success, result}
 gps -> u: showPassphrase
 u -> gps: clicks "Ok"
 deactivate gps

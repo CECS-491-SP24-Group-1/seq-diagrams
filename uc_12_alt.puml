@@ -38,13 +38,13 @@ lur -> dbm: QUERY UUID|username
 alt record exists
 
 	dbm --> lur: return: user info
-	lur --> lus: RESP json::user_info
+	lur --> lus: RESP json::{success, user_info}
 	lus -> u: show user info for request
 
 else no record found
 
 	dbm --> lur: return: error_no_record_found
-	lur --> lus: RESP json::error_no_record_found
+	lur --> lus: RESP json::{error, no_record_found}
 	lus -> u: shows error stating \nuser info wasn't found
 
 end
