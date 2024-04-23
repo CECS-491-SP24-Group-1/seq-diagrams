@@ -35,14 +35,13 @@ u -> lus: provides valid username or\n UUID; Clicks "Submit" button
 lus -> lur: POST /users/lookup json::query
 lur -> dbm: QUERY UUID|username
 
-group record exists
+alt record exists
 
 	dbm --> lur: return: user info
 	lur --> lus: RESP json::user_info
 	lus -> u: show user info for request
 
-end
-group no record found
+else no record found
 
 	dbm --> lur: return: error_no_record_found
 	lur --> lus: RESP json::error_no_record_found

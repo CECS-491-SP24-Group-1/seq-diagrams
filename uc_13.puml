@@ -36,20 +36,21 @@ krs -> krr: POST /users/check_key_revocation json::query
 krr -> dbm: QUERY public_key
 
 'The server responds back with the revocation status of the key.
-alt record exists; key is not revoked
+group record exists; key is not revoked
 
 	dbm --> krr: return: not_revoked
 	krr --> krs: RESP json::not_revoked
 	krs -> u: key is not revoked; \nsafe to communicate
-
-else record exists; key is revoked
+end
+group record exists; key is revoked
 
 	dbm --> krr: return: revoked_since
 	krr --> krs: RESP json::revoked_since
 	krs -> u: key is revoked; \nnot safe to communicate
+end
 
 'If no response from the database, then “indeterminate” is sent instead.
-else no record found
+group no record found
 
 	dbm --> krr: return: error_no_record_found
 	krr --> krs: RESP json::error_no_record_found
