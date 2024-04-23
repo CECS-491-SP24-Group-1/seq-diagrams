@@ -29,7 +29,7 @@ u -> a: opens screen to lookup a user
 a -> lus: show()
 activate lus
 lus -> u: prompt for username or UUID
-u -> lus: provides valid username or\n UUID; Clicks 'Submit" button
+u -> lus: provides valid username or\n UUID; Clicks "Submit" button
 
 'Server responds with user’s public key, username, and UUID.
 lus -> lur: POST /users/lookup json::query

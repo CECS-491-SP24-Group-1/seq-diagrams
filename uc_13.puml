@@ -11,10 +11,55 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary CheckKeyRevocationScreen as krs <<Boundary>>
+control CheckKeyRevocationRoute as krr <<Control>>
+control DatabaseManager as dbm <<Control>>
 
 'Setup persistent objects here
+activate u
+activate a
+activate krr
+activate dbm
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'The user sends the key to the server.
+u -> a: opens screen to check key revocation
+a -> krs: show()
+activate krs
+krs -> u: prompt for public key or fingerprint
+u -> krs: provides valid public key or \nfingerprint; Clicks "Submit" button
+
+'The server queries the revocation database for the key.
+krs -> krr: POST /users/check_key_revocation json::query
+krr -> dbm: QUERY public_key
+
+'The server responds back with the revocation status of the key.
+alt record exists; key is not revoked
+
+	dbm --> krr: return: not_revoked
+	krr --> krs: RESP json::not_revoked
+	krs -> u: key is not revoked; \nsafe to communicate
+
+else record exists; key is revoked
+
+	dbm --> krr: return: revoked_since
+	krr --> krs: RESP json::revoked_since
+	krs -> u: key is revoked; \nnot safe to communicate
+
+'If no response from the database, then “indeterminate” is sent instead.
+else no record found
+
+	dbm --> krr: return: error_no_record_found
+	krr --> krs: RESP json::error_no_record_found
+	krs -> u: key is not in system; \nnot safe to communicate
+
+end
+
+'Cleanup
+u -> krs: clicks "Ok"
+deactivate krs
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
