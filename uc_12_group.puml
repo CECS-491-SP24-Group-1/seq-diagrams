@@ -1,4 +1,4 @@
-@startuml uc12
+@startuml uc12_group
 title "Use Case #12: Lookup User"
 
 'Styling goes here

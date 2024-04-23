@@ -32,7 +32,7 @@ activate pss
 'activate pss
 'pss -> u: promptForSecret
 
-... +++ invocation of this use case occurs +++ ...
+== invocation of this use case occurs ==
 
 
 u -> pss: selects "Passphrase" \nas the secret type
@@ -63,7 +63,7 @@ u -> gps: clicks "Ok"
 deactivate gps
 
 'Cleanup
-... +++ flow handed back to calling use case +++ ...
+== flow handed back to calling use case ==
 
 'Cleanup
 'u -> pss: provides passphrase \nclicks "Confirm"
