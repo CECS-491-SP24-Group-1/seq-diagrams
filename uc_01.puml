@@ -14,48 +14,99 @@ skinparam sequence {
 'Setup the objects involved here
 actor User as u <<Actor>>
 boundary App as a <<Boundary>>
+boundary RegistrationWindow as rw <<Boundary>>
+control CryptoAPI as ca <<Control>>
+control VaultManager as vm <<Control>>
 entity Vault as v <<Entity>>
-boundary RegistrationWindow as rw <<boundary>>
 control RegisterUserRoute as rur <<Control>>
-control DatabaseManager as db <<Control>> 
+control DatabaseManager as db <<Control>>
+boundary SMTPClient as sc <<Boundary>>
 
 'Setup persistent objects here
 activate u 
 activate a
+activate ca
+activate vm
 activate rur
 activate db
-
+activate sc
 
 '--- FLOW OF CONTROL STARTS HERE ---
-' User selects “Create Account” on the front page.
-u -> a: Selects “Create Account”
+'User selects “Create Account” on the front page.
+u -> a: Selects “Create Account” \nin the welcome window
 
-' System shows a form to create the account.
+'System shows a form to create the account.
+a -> rw: show()
 activate rw
-a -> rw: showWindow()
 
-' User enters email address, username and click "Create account"
-u -> rw: Enters email, username and clicks "Create account"
+'User enters email address, username. User clicks “Create Account” button.
+u -> rw: Enters email and username \nand clicks "Create account"
+rw -> rw: validate(formData)
 
-' User device send a request to the server to create an account
-rw -> rur: POST /users/register
+'User’s device generates a UUID for the user and vault, timestamp, crypto key pair, and an identifier for the vault.
+rw -> ca: ed25519Keygen()
+ca --> rw: return: PrivateKey, PublicKey objects
+rw -> rw: generateVaultId() -> vaultId
 
-rur -> db: QUERY ensureNonexistantUser(userCollection, username)
+'User device send a request to the server to create an account.
+rw -> rur: POST /users/register json::user_info
 
-alt User already exists
-	db --> rur: return: err
-	db --> rw: RESP json::{"status": "error", "message": "User already exists"}
-else User does not exist
-	db --> rur: 
-	rur --> rw: RESP json::{"status": "success", "message": "Account created successfully, please verify email"}
+'Server checks if the account already exists
+rur -> rur: check validity of \nusername, email, pubkey
+rur -> db: QUERY username|email
+
+group User exists
+	db --> rur: return: username exists || email exists
+	rur --> rw: RESP json::{"status": "error", "message": "User already exists"}
+	rw -> u: show error stating \nuser already exists
+	rnote over u
+	Flow of control 
+	prematurely ends here
+	endrnote
 end
+
+group User doesn't exist
+	'Server creates the user and issues a temporary access token
+	db --> rur: return: no record for username or email
+	rur -> rur: createUser(options) -> user
+	rur -> rur: createTempAuthToken() -> token \nuser.tokens.append(token)
+	rur -> db: PUT user
+	rur -> rur: generateChallenges(email, pk) -> eChall, pkChall
+
+	'Server sends an email to the user to confirm creation of the account.
+	rur -> rur: composeEmail(emailChall) -> emailContent
+	rur -> sc: sendEmail(uemail, emailContent)
+	rur -> db: PUT eChall, pkChall
+
+	'Server sends the response back and it's confirmed.
+	rur --> rw: RESP json::{user.id, redact(user.email), challengeIDs, token}
+	rw -> u: show account details plus instructions \non how to complete challenges
+	u -> rw: clicks "Confirm Account Creation"
+end
+
+'User’s device creates a vault with the details provided by the user and the data that was generated.
+rw -> vm: createNewVault(vaultId, sk, pk)
+vm --> v: create: Vault
+activate v
+vm --> rw: return: Vault object
+== "Use Case #7: Encrypt Vault" is called to store the vault to the device ==
+
+'User begins the challenge process
+rw -> u: prompts to verify public key
+u -> rw: clicks "Verify Public Key"
+
+== "Use Case #8: Challenge User" is called to validate the public key and again to verify the email ==
+
+'In-app challenges are completed
+rw -> u: shows that the public \nkey was validated
+u -> rw: clicks "Complete Registration"
+rw -> vm: destroy()
 deactivate rw
+vm -> v: destroy()
+deactivate v
 
-rur -> db: QUERY createAccount(email, username)
-rur -> u: Create challenge and send to user email
-u -> rur: User verify email and enter challenge
-rur --> a: RESP json::{"status": "success", "message": "Successfully verified email"}
-
+'Cleanup
+a -> u: shows welcome window
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
