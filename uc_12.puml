@@ -32,7 +32,7 @@ lus -> u: prompt for username or UUID
 u -> lus: provides valid username or\n UUID; Clicks "Submit" button
 
 'Server responds with user’s public key, username, and UUID.
-lus -> lur: POST /users/lookup json::query
+lus -> lur: POST /api/users/lookup json::query
 lur -> dbm: QUERY UUID|username
 
 group record exists
