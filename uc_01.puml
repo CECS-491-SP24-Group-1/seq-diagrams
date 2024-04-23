@@ -60,8 +60,9 @@ group User exists
 	rur --> rw: RESP json::{"status": "error", "message": "User already exists"}
 	rw -> u: show error stating \nuser already exists
 	rnote over u
-	Flow of control 
-	prematurely ends here
+	Flow of control prematurely ends here
+	if the provided email or username is
+	already in the database.
 	endrnote
 end
 
@@ -84,6 +85,11 @@ group User doesn't exist
 	u -> rw: clicks "Confirm Account Creation"
 end
 
+rnote over u
+Email verification via "Use Case #8" can
+occur asynchronously after this point.
+endrnote
+
 'User’s device creates a vault with the details provided by the user and the data that was generated.
 rw -> vm: createNewVault(vaultId, sk, pk)
 vm --> v: create: Vault
@@ -96,7 +102,7 @@ vm --> rw: return: Vault object
 rw -> u: prompts to verify\n public key
 u -> rw: clicks "Verify Public Key"
 
-== "Use Case #8: Challenge User" is called to validate the public key and again to verify the email ==
+== "Use Case #8: Challenge User" is called to validate the public key ==
 
 'In-app challenges are completed
 rw -> u: shows that the public \nkey was validated
