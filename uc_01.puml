@@ -48,7 +48,7 @@ rw -> ca: ed25519Keygen()
 ca --> rw: return: PrivateKey, PublicKey objects
 rw -> rw: generateVaultId() -> vaultId
 
-'User device send a request to the server to create an account.
+'User’s device sends the UUID of the user, timestamp, and generated public key to the server. The private key stays on the device for security reasons (CRITICAL).
 rw -> rur: POST /users/register json::user_info
 
 'Server checks if the account already exists
@@ -74,8 +74,8 @@ group User doesn't exist
 	rur -> rur: generateChallenges(email, pk) -> eChall, pkChall
 
 	'Server sends an email to the user to confirm creation of the account.
-	rur -> rur: composeEmail(emailChall) -> emailContent
-	rur -> sc: sendEmail(uemail, emailContent)
+	rur -> rur: composeEmail(eChall) -> emailContent
+	rur -> sc: sendEmail(user.email, emailContent)
 	rur -> db: PUT eChall, pkChall
 
 	'Server sends the response back and it's confirmed.
@@ -89,10 +89,11 @@ rw -> vm: createNewVault(vaultId, sk, pk)
 vm --> v: create: Vault
 activate v
 vm --> rw: return: Vault object
+
 == "Use Case #7: Encrypt Vault" is called to store the vault to the device ==
 
 'User begins the challenge process
-rw -> u: prompts to verify public key
+rw -> u: prompts to verify\n public key
 u -> rw: clicks "Verify Public Key"
 
 == "Use Case #8: Challenge User" is called to validate the public key and again to verify the email ==
@@ -106,7 +107,7 @@ vm -> v: destroy()
 deactivate v
 
 'Cleanup
-a -> u: shows welcome window
+a -> u: shows welcome window once again
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
