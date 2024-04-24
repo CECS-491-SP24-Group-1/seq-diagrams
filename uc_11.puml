@@ -1,5 +1,6 @@
+
 @startuml uc11
-title "Use Case #11: Leave Conversation"
+title "Use Case #11: Leave chat room "
 
 'Styling goes here
 hide footbox
@@ -11,10 +12,40 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+Actor User as User <<Actor>>
+boundary Device as Device <<Boundary>>
+control Vault as Vault <<Control>>
 
 'Setup persistent objects here
+activate User
+activate Device 
 
 '--- FLOW OF CONTROL STARTS HERE ---
+User -> Device: Selects option to leave chat room/closes app
+activate Vault
+Device -> Vault : Persists saved chats to
+
+'Note included in use case
+rnote over Vault
+Persists saved chats might not be implemented
+endrnote
+
+
+group Chats are saved
+Device -> Vault: Saves chats to
+Vault -> Vault: Encrypts saved chats
+Vault -> Vault : Stores encrypted chats
+end group
+
+group Chats are not saved
+Vault -> Vault : unsaved messages are deleted
+end group
+deactivate Vault
+
+group User in app
+Device -> User: Display chat list page
+end group
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
