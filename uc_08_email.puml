@@ -56,7 +56,6 @@ end
 'Default case: challenge exists and is valid
 db --> cr: return: Challenge
 cr -> cr: validate(challenge)
-cr -> db: DELETE challenge.id
 
 'Query the database for the user flags.
 cr -> db: QUERY token.subject.flags, token.subject.email
@@ -74,7 +73,8 @@ end
 cr -> cr: composeEmail(flag_statuses & more) -> emailContent
 cr -> sc: sendEmail(token.subject.email, emailContent)
 
-'Return the feedback to the user
+'Cleanup and return the feedback to the user
+cr -> db: DELETE challenge.id
 cr --> wb: RESP json::{success, email_verified_successfully}
 '--- FLOW OF CONTROL ENDS HERE   ---
 

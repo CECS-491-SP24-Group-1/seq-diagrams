@@ -49,7 +49,7 @@ ca --> rw: return: PrivateKey, PublicKey objects
 rw -> rw: generateVaultId() -> vaultId
 
 'User’s device sends the UUID of the user, timestamp, and generated public key to the server. The private key stays on the device for security reasons (CRITICAL).
-rw -> rur: POST /api/users/register json::user_info
+rw -> rur: POST /api/users/register json::{user_info}
 
 'Server checks if the account already exists
 rur -> rur: check validity of \nusername, email, pubkey
