@@ -11,10 +11,20 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary ChatRoom as cr <<Boundary>>
+control ChatControl as cc <<Control>>
+
 
 'Setup persistent objects here
+activate u
+activate a
 
 '--- FLOW OF CONTROL STARTS HERE ---
+u -> a: Click "Create Conversation"
+a -> u: Display contact list
+u -> a: Select contact they want to chat with
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
