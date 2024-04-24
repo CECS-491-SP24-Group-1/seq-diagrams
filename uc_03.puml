@@ -11,20 +11,65 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary ChatRoom as cr <<Boundary>>
-control ChatControl as cc <<Control>>
+actor Sender as s <<Actor>> #red
+boundary SenderApp as sa <<Boundary>> #red
+entity Session as ss <<Entity>> #red
+control VaultManager as vm <<Control>>
+entity Vault as v <<Entity>>
+control ChatController as cc <<Control>>
+control Server as srv <<Control>>
+entity Session as rs <<Entity>> #blue
+boundary ReceiverApp as ra <<Boundary>> #blue
+actor Receiver as r <<Actor>> #blue
 
 
 'Setup persistent objects here
-activate u
-activate a
+activate s
+activate srv
+activate r
+activate sa
+activate ra
+activate vm
 
-'--- FLOW OF CONTROL STARTS HERE ---
-u -> a: Click "Create Conversation"
-a -> u: Display contact list
-u -> a: Select contact they want to chat with
 '--- FLOW OF CONTROL ENDS HERE   ---
+'--- FLOW OF CONTROL STARTS HERE ---
+'Sender creates a conversation and ends the request to the receiver
+s -> sa: Click "Create Conversation"
+sa -> vm: getContactList()
+vm -> v: get: contacts
+activate v
+v --> vm: return: contact list
+vm --> sa: return: contact list
+deactivate v
 
+sa -> s: Display contact list
+s -> sa: Select contact
+
+sa -> cc: ------
+activate cc
+cc -> srv: initiateSession()
+srv -> ra: SEND INVITE FOR SESSION
+ra -> r: Display invite
+r -> ra: Accept invite
+ra -> srv: ACCEPT INVITE
+srv -> cc: invite accepted
+cc -> ss: RESP: createSession()
+activate ss
+cc -> rs: RESP: createSession()
+activate rs
+
+
+
+rnote over ss
+  Conversation is created
+  the users can start chatting
+end note
+
+legend bottom
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Sender|
+	|<#blue> | Receiver|
+endlegend
+
+'--- FLOW OF CONTROL ENDS HERE   ---
 @enduml
