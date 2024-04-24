@@ -1,3 +1,4 @@
+
 @startuml uc10
 title "Use Case #10: Enter Conversation"
 
@@ -11,10 +12,30 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
-
+Actor User as User <<Actor>>
+boundary Device as Device <<Boundary>>
+control Vault as Vault <<Control>>
+control Chat_Room as Chat_Room<<Control>>
+database Server
 'Setup persistent objects here
-
+activate User
+activate Device 
+activate Vault
+activate Chat_Room
+activate Server
 '--- FLOW OF CONTROL STARTS HERE ---
+
+User -> Device : Clicks chat_room
+Device -> Vault : Sends request for chat sessions
+Vault -> Device : Returns chat sessions
+Device -> User:  Displays chat page from vault
+Device -> Server: Poll for unread messages
+Server -> Device: Sends unread messages
+Device -> User: Displays unread messages
+Device -> Server: Calls on receive_chat to retrieve from queue
+Server -> Device: Pushes chats
+Device -> User: Displays progress bar for the queue
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
