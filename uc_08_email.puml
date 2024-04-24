@@ -59,6 +59,7 @@ cr -> cr: validate(challenge)
 
 'Query the database for the user flags.
 cr -> db: QUERY token.subject.flags, token.subject.email
+db --> cr: return: flags, pubkey, email
 
 'Mark the user's email as verified
 cr -> db: MODIFY token.subject, token.subject.email_verified = true

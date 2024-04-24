@@ -1,0 +1,120 @@
+@startuml uc08_pubkey
+title "Use Case #8: Challenge User - Public Key"
+
+'Styling goes here
+hide footbox
+skinparam stereotypePosition bottom
+skinparam sequenceMessageAlign direction
+skinparam sequence {
+	LifeLineBorderColor #Silver
+	LifeLineBackgroundColor #Gainsboro
+}
+
+'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+control CryptoAPI as ca <<Control>>
+control VaultManager as vm <<Control>>
+entity Vault as v <<Entity>>
+control ChallengeRoute as cr <<Control>>
+control DatabaseManager as db <<Control>>
+boundary SMTPClient as sc <<Boundary>>
+
+'Setup persistent objects here
+activate u
+activate a
+activate ca
+activate vm
+activate v
+activate cr
+activate db
+activate sc
+
+'--- FLOW OF CONTROL STARTS HERE ---
+'User submits a request to verify their public key.
+u -> a: requests to solve a \nchallenge by its ID
+
+'App requests the challenge from the server by its ID.
+a -> cr: GET /api/challenges/:id/request
+
+'Server checks if the challenge is valid
+cr -> db: QUERY challenge.id
+
+'Case 1: The challenge doesn't exist
+group Nonexistant challenge
+	db --> cr: error: no record found
+	cr --> a: RESP json::{error, no_record_found}
+	a -> u: Alert "Nonexistant challenge"
+	rnote over u
+	Flow of control prematurely ends here.
+	endrnote
+end
+
+'Case 2: The challenge is invalid, not for this user, not email challenge, or the solution is incorrect.
+group Challenge isn't valid \nChallenge 'for' and auth 'subject' mismatch \nChallenge isn't valid for emails \nChallenge solution incorrect
+	db --> cr: return: Challenge
+	cr -> cr: validate(challenge)
+	cr --> a: RESP json::{error, unauthorized}
+	a -> u: Alert "Challenge solve failure; reason"
+	rnote over u
+	Flow of control prematurely ends here.
+	endrnote
+end
+
+'Default case: challenge exists and is valid.
+db --> cr: return: Challenge
+cr -> cr: validate(challenge)
+
+'Server sends the challenge payload to the user.
+cr --> a: RESP json::{success, challenge_payload}
+
+'The app signs the challenge payload with the user's private key.
+a -> ca: sign(challenge_payload)
+ca -> vm: getPrivateKey()
+vm --> ca: return: PrivateKey sk
+ca -> ca: sk.sign(challenge_payload) -> signature
+ca --> a: return: signature
+
+'The app sends the signature to the server.
+a -> cr: POST /api/challenges/:id/solve json::{challenge_payload, signature}
+
+'The server queries the database for the challenge info
+cr -> db: QUERY challenge.id
+db --> cr: return: Challenge
+
+'The server queries the database for the user flags public key, and email.
+cr -> db: QUERY token.subject.flags, token.subject.pubkey, token.subject.email
+db --> cr: return: flags, pubkey, email
+
+'The server verifies the signature against the known public key.
+cr -> cr: pk.verify(signature, challenge.payload)
+
+'Case 1: The challenge doesn't exist
+group Invalid signature
+	cr --> a: RESP json::{error, invalid_signature}
+	a -> u: Alert "Invalid signature"
+	rnote over u
+	Flow of control prematurely ends here.
+	endrnote
+end
+
+'Default case: the verification succeeds. 
+'Mark the user's public key as verified
+cr -> db: MODIFY token.subject, token.subject.pubkey_verified = true
+
+'Also unmark the user's account for deletion if the email is verified.
+group User email is also verified
+	cr -> db: MODIFY token.subject, token.subject.should_purge = false
+	cr -> db: MODIFY token.subject, token.subject.purge_by = nil
+end
+
+'Email the user to inform of successful challenge completion and next steps.
+cr -> cr: composeEmail(flag_statuses & more) -> emailContent
+cr -> sc: sendEmail(token.subject.email, emailContent)
+
+'Cleanup and return the feedback to the user
+cr -> db: DELETE challenge.id
+cr --> a: RESP json::{success, pubkey_verified_successfully}
+'--- FLOW OF CONTROL ENDS HERE   ---
+
+@enduml
