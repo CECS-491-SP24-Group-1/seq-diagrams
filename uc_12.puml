@@ -39,7 +39,7 @@ group record exists
 
 	dbm --> lur: return: user info
 	lur --> lus: RESP json::{success, user_info}
-	lus -> u: show user info for request
+	lus -> u: shows user info for request
 
 end
 group no record found

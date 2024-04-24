@@ -14,21 +14,16 @@ skinparam sequence {
 actor User as u <<Actor>>
 boundary App as a <<Boundary>>
 boundary LoginWindow as lw <<Boundary>>
-control CryptoAPI as ca <<Control>>
-control VaultManager as vm <<Control>>
-entity Vault as v <<Entity>>
-control RegisterUserRoute as rur <<Control>>
+control LoginRoute as lr <<Control>>
 control DatabaseManager as db <<Control>>
-boundary SMTPClient as sc <<Boundary>>
+boundary DeviceStorage as ds <<Boundary>>
 
 'Setup persistent objects here
 activate u 
 activate a
-activate ca
-activate vm
-activate rur
+activate lr
 activate db
-activate sc
+activate ds
 
 '--- FLOW OF CONTROL STARTS HERE ---
 'User selects “Login” on the front page.
@@ -38,6 +33,16 @@ u -> a: Selects “Login” \nin the welcome window
 a -> lw: show()
 activate lw
 
+=="Use Case #5: Decrypt Vault" is called to decrypt the vault==
+
+lw -> lr: POST /api/users/login json::user_info
+
+=="Use Case 8: Challenge User" is called to verify the identity of the user==
+
+'Server issues a token and returns to user for confirmation
+lr -> db: issueToken()
+lr -> u: Return token to user, confirming the success of the login
+lr -> ds: Persist the token in local storage
 
 '--- FLOW OF CONTROL ENDS HERE   ---
 
