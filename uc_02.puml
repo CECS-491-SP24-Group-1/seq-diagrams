@@ -6,15 +6,39 @@ hide footbox
 skinparam stereotypePosition bottom
 skinparam sequenceMessageAlign direction
 skinparam sequence {
-	LifeLineBorderColor #Silver
-	LifeLineBackgroundColor #Gainsboro
+    LifeLineBorderColor #Silver
+    LifeLineBackgroundColor #Gainsboro
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary LoginWindow as lw <<Boundary>>
+control CryptoAPI as ca <<Control>>
+control VaultManager as vm <<Control>>
+entity Vault as v <<Entity>>
+control RegisterUserRoute as rur <<Control>>
+control DatabaseManager as db <<Control>>
+boundary SMTPClient as sc <<Boundary>>
 
 'Setup persistent objects here
+activate u 
+activate a
+activate ca
+activate vm
+activate rur
+activate db
+activate sc
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'User selects “Login” on the front page.
+u -> a: Selects “Login” \nin the welcome window
+
+'System shows a form to Login
+a -> lw: show()
+activate lw
+
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
