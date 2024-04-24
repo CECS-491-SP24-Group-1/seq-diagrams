@@ -28,7 +28,7 @@ activate IUser
 activate d1
 
 '--- FLOW OF CONTROL STARTS HERE ---
-IUser -> d1 : User clicks on "Delete" option
+IUser -> d1 : User clicks on \n"Delete" option
 d1 -> IUser : Asks if they want to delete conversation
 
 rnote over IUser
@@ -36,13 +36,13 @@ User will be warned that the other party's
 chat room might not be immediately deleted
 endrnote
 
-IUser -> d1: Clicks yes on the confirmation prompt
+IUser -> d1: Clicks yes on \nthe confirmation prompt
 activate Server
 d1 -> Server: Sends a deletion request 
 
 ==Server calls "Use case 15: Send chat" to pass the request to other party ==
 
-d1 -> Server: Nullifies double ratchet and session key pair
+d1 -> d1: Nullifies double ratchet and session key pair
 d1 -> Server: Marks session as closed
 activate v1
 d1 -> v1 : Sends call to purge session
@@ -58,9 +58,9 @@ activate RUser
 activate d2
 
 Server -> d2: Close request sent
-d2-> RUser: Displays confirmation message
-RUser -> d2 : Responding user approves close request
-d2 -> Server: Nullifies double ratched and session key pair
+d2-> RUser: Displays \nconfirmation message
+RUser -> d2 : Responding \nuser approves close request
+d2 -> d2: Nullifies double ratchet\n and session key pair
 d2 -> Server: Marks session as closed
 activate v2
 d2 -> v2: Sends call to purge session 
@@ -68,8 +68,8 @@ v2 -> v2: Purges session
 
 activate IUser
 activate d1
-d1 -> IUser: Sends message that chat has been terminated
-d2 -> RUser: Sends message that chat has been terminated
+d1 -> IUser: Sends message that\n chat has been terminated
+d2 -> RUser: Sends message that\nchat has been terminated
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
