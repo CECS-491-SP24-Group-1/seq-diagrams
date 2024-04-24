@@ -32,9 +32,10 @@ Device -> User:  Displays chat page from vault
 Device -> Server: Poll for unread messages
 Server -> Device: Sends unread messages
 Device -> User: Displays unread messages
-Device -> Server: Calls on receive_chat to retrieve from queue
-Server -> Device: Pushes chats
-Device -> User: Displays progress bar for the queue
+
+== Device calls "Use Case #16: Receive Chat" on each unread message in the queue ==
+Server -> Device: Pushes unread chats
+
 
 '--- FLOW OF CONTROL ENDS HERE   ---
 
