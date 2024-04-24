@@ -1,3 +1,4 @@
+
 @startuml uc14
 title "Use Case #14: Delete Conversation"
 
@@ -11,10 +12,64 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+Actor InitiatingUser as IUser <<Actor>>
+boundary SendingDevice as d1 <<Boundary>>
+control Vault_1 as v1 <<Control>>
+database Server as Server
+
+control Vault_2 as v2<<Control>>
+boundary ReceivingDevice as d2 <<Boundary>>
+Actor ReceivingUser as RUser <<Actor>>
+
+
 
 'Setup persistent objects here
+activate IUser
+activate d1
 
 '--- FLOW OF CONTROL STARTS HERE ---
+IUser -> d1 : User clicks on "Delete" option
+d1 -> IUser : Asks if they want to delete conversation
+
+rnote over IUser
+User will be warned that the other party's 
+chat room might not be immediately deleted
+endrnote
+
+IUser -> d1: Clicks yes on the confirmation prompt
+activate Server
+d1 -> Server: Sends a deletion request 
+
+==Server calls "Use case 15: Send chat" to pass the request to other party ==
+
+d1 -> Server: Nullifies double ratchet and session key pair
+d1 -> Server: Marks session as closed
+activate v1
+d1 -> v1 : Sends call to purge session
+v1 -> v1: Purges session 
+
+deactivate IUser
+deactivate d1
+deactivate v1
+==Responding user receives close request via "Use case 16: Receive Chat==
+
+'Receiving user activation
+activate RUser
+activate d2
+
+Server -> d2: Close request sent
+d2-> RUser: Displays confirmation message
+RUser -> d2 : Responding user approves close request
+d2 -> Server: Nullifies double ratched and session key pair
+d2 -> Server: Marks session as closed
+activate v2
+d2 -> v2: Sends call to purge session 
+v2 -> v2: Purges session
+
+activate IUser
+activate d1
+d1 -> IUser: Sends message that chat has been terminated
+d2 -> RUser: Sends message that chat has been terminated
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
