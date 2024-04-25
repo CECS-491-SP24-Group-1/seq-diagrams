@@ -11,45 +11,85 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary UserDevice as ud <<Boundary>>
-boundary App as a <<Boundary>>
-boundary ChatRoomScreen as crs <<Boundary>>
-control GetMessageRoute as gmr <<Control>>
-control ReceiveQueue as rq <<Control>>
+actor ReceivingUser as u <<Actor>>
+boundary ReceiverConversationWindow as rcw <<Boundary>>
+control ReceiverConversationManager as rcm <<Control>>
+control SendMessageRoute as smr <<Control>>
+control WebsocketHandler as ws <<Control>>
+control DatabaseManager as db <<Control>>
+'boundary SenderDevice as sd <<Boundary>>
 
 'Setup persistent objects here
 activate u
-activate ud
-activate a
-activate gmr
-activate rq
+activate smr
+activate ws
+activate db
+'activate sd
 
 '--- FLOW OF CONTROL STARTS HERE ---
-a -> gmr: make request for unread message
-gmr -> rq: get messages from queue
-rq --> gmr: return messages
-gmr --> a: RESP /api/send_message json: {sending_user, message}
-a -> a: decrypt messages
-'not sure if this is correct:
-a -> a: update ratchet state 
+'Case 1: The recipient is online
+group Recipient Already In Convo Window (Online)
+	'If the receiving user is online, then messages are pulled in immediately.
+	activate rcm
+	activate rcw
+	ws -> rcm: wsMessage(ws, recvId, em)
+	rnote over rcw
+	The message is pulled in and
+	processed; see next section
+	below the "enter convo" case.
+	end note
+end
+deactivate rcw
+deactivate rcm
 
-group If User is Offline
-  a -> ud: Send push notification
+...
+
+'Case 2: The recipient is offline
+group Recipient Enters In Convo Window (Offline)
+	'The user enters the conversation.
+	u -> rcw: Receiving user \nopens conversation
+	activate rcw
+	rnote over rcm,rcw
+	"Use Case #10: Enter Conversation" is called
+	to populate the conversation window with saved
+	messages and re-initialize the session manager
+	for this conversation.
+	end note
+	activate rcm
+
+	'The recipient’s device makes a request for unread messages.
+	rcm -> smr: POST /api/conversations/:roomId/receive \n\tjson::{recvId}
+
+	'The server dequeues the unread messages from the receiver's queue and sends them down to the receiver in an array, from oldest to newest.
+	smr -> db: recvId.messageQueue.peekAll(roomId, em) \n\t -> EMessage[] msgs
+	db --> smr: return: msgs
+	smr --> rcm: RESP json::{success, msgs}
+
+	'The receiver's device begins processing each message
+	rnote over rcw
+	Each message is processed using
+	the below flow of control.
+	end note
 end
 
-u -> a: open message
-a -> crs: display message
-activate crs
-u -> crs: user read message
-crs -> a: mark message as read
-a -> gmr: make request to remove message from queue
-gmr -> rq: remove message from queue
+...
 
+'The recipient’s device decrypts the message and updates the ratchet state. 
+rcm -> rcm: seshKey.decrypt(em)\n -> Message msg
+rcm -> rcm: updateSessionState()
+rcm -> rcw: onSuccessfulReceive(msg)
 
+'The recipient reads the message that was sent to them.
+rcw -> u: received message is displayed \nin the chat room
 
+'The recipient’s device sends a read receipt to the server to be delivered to the sender, if enabled
+rcm -> smr: POST /api/conversations/:roomId/receive_ack \n\tjson::{em.id}
+group Recipient Has Read Receipts On
+	smr -> ws: wsMessage(ws, recvId, read_receipt, em.id)
+end
 
-
+'The server removes the message from the queue and securely erases it.
+smr -> db: recvId.messageQueue.eject(roomId, em.id)
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml

@@ -36,7 +36,7 @@ scw -> scm: newMessage(content) -> Message
 'The sending user’s device encrypts the message and updates the ratchet state before sending the message.
 scm -> scm: seshKey.encrypt(message)\n -> EMessage em
 scm -> scm: updateSessionState()
-scm -> smr: POST /api/send_message \n\tjson::{recvId, roomId, em}
+scm -> smr: POST /api/conversations/:roomId/send \n\tjson::{recvId, em}
 
 'Check if the user is online first.
 smr -> ws: query(recvId) -> bool
@@ -55,7 +55,7 @@ end
 group Recipient Offline (ws query is false)
 	'If the receiving user is offline, a notification is sent to them and their device pulls down the message the next time they enter the chat room.
 	'The server enqueues the message into the receiver's receive queue.
-	smr -> db: recvId.messageQueue.enqueue(em)
+	smr -> db: recvId.messageQueue.enqueue(roomId, em)
 	smr --> rd: PUSH_NOTIF: new message available
 	rnote over rd
 	"Use Case #16: Receive Chat" is 
@@ -69,6 +69,6 @@ end
 smr --> scm: RET json::{success, send_ack}
 scm -> scw: onSuccessfulSend(message)
 scw -> u: sent message is displayed \nin the chat room
-
 '--- FLOW OF CONTROL ENDS HERE   ---
+
 @enduml
