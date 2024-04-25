@@ -53,7 +53,3 @@ dm -> u: Database manager sends notification abount successful deletion mark
 
 
 @enduml
-
-
-
-'Adding this to confirm git functionality'
