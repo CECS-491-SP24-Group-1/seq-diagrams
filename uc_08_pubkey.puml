@@ -89,7 +89,7 @@ db --> cr: return: flags, pubkey, email
 'The server verifies the signature against the known public key.
 cr -> cr: pk.verify(signature, challenge.payload)
 
-'Case 1: The challenge doesn't exist
+'Case 1: The signature is invalid.
 group Invalid signature
 	cr --> a: RESP json::{error, invalid_signature}
 	a -> u: Alert "Invalid signature"

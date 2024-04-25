@@ -14,36 +14,63 @@ skinparam sequence {
 actor User as u <<Actor>>
 boundary App as a <<Boundary>>
 boundary LoginWindow as lw <<Boundary>>
+control CryptoAPI as ca <<Control>>
+control VaultManager as vm <<Control>>
+entity Vault as v <<Entity>>
 control LoginRoute as lr <<Control>>
 control DatabaseManager as db <<Control>>
-boundary DeviceStorage as ds <<Boundary>>
 
 'Setup persistent objects here
 activate u 
 activate a
+activate ca
+activate vm
 activate lr
 activate db
-activate ds
 
 '--- FLOW OF CONTROL STARTS HERE ---
 'User selects “Login” on the front page.
 u -> a: Selects “Login” \nin the welcome window
 
-'System shows a form to Login
+'System shows a form to login.
 a -> lw: show()
 activate lw
 
 =="Use Case #5: Decrypt Vault" is called to decrypt the vault==
+vm -> v: load()
+activate v
 
-lw -> lr: POST /api/users/login json::user_info
+'User's device creates a nonce, signs it, and sends it to the server.
+ca -> ca: generateNonce() -> nonce
+ca -> ca: sk.sign(nonce) -> signature
+lw -> lr: POST /api/users/login json::{user_info, nonce, signature}
 
-=="Use Case 8: Challenge User" is called to verify the identity of the user==
+'The server verifies the signature against the known public key.
+lr -> db: QUERY user_info.id, user_info.pk
+db --> lr: return: PublicKey pk
+lr -> lr: pk.verify(signature, nonce)
 
-'Server issues a token and returns to user for confirmation
-lr -> db: issueToken()
-lr -> u: Return token to user, confirming the success of the login
-lr -> ds: Persist the token in local storage
+'Case 1: The signature is invalid.
+group Invalid signature
+	lr --> a: RESP json::{error, invalid_signature}
+	a -> u: Alert "Invalid signature"
+	rnote over u
+	Flow of control prematurely ends here.
+	endrnote
+end
 
+'Server issues a token for the user, establishing the existence of the login session.
+lr -> lr: issueToken(user_info.id) -> token
+lr -> db: PUT user_info.tokens.append(token)
+
+'Server sends the token to the user, confirming the success of the login
+lr --> lw: RESP json::{success, token}
+
+'User persists the token in local storage.
+lw -> vm: store(token)
+vm -> v: user.tokens.append(token)
+vm --> lw: return: store successful
+deactivate lw
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
