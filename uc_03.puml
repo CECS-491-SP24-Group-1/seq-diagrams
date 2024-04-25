@@ -12,14 +12,12 @@ skinparam sequence {
 
 'Setup the objects involved here
 actor Sender as s <<Actor>> #red
-boundary SenderApp as sa <<Boundary>> #red
-entity Session as ss <<Entity>> #red
+boundary SenderDevice as sd <<Boundary>> #red
 control VaultManager as vm <<Control>>
 entity Vault as v <<Entity>>
 control ChatController as cc <<Control>>
 control Server as srv <<Control>>
-entity Session as rs <<Entity>> #blue
-boundary ReceiverApp as ra <<Boundary>> #blue
+boundary ReceiverDevice as rd <<Boundary>> #blue
 actor Receiver as r <<Actor>> #blue
 
 
@@ -27,41 +25,78 @@ actor Receiver as r <<Actor>> #blue
 activate s
 activate srv
 activate r
-activate sa
-activate ra
+activate sd
 activate vm
 
-'--- FLOW OF CONTROL ENDS HERE   ---
 '--- FLOW OF CONTROL STARTS HERE ---
-'Sender creates a conversation and ends the request to the receiver
-s -> sa: Click "Create Conversation"
-sa -> vm: getContactList()
+
+' Sender press creates conversation and select the user from the contact list
+s -> sd: click "Create Conversation"
+sd -> vm: getContactList()
 vm -> v: get: contacts
 activate v
 v --> vm: return: contact list
-vm --> sa: return: contact list
+vm --> sd: return: contact list
 deactivate v
 
-sa -> s: Display contact list
-s -> sa: Select contact
-
-sa -> cc: ------
+sd -> s: display contact list
+s -> sd: select contact
 activate cc
-cc -> srv: initiateSession()
-srv -> ra: SEND INVITE FOR SESSION
-ra -> r: Display invite
-r -> ra: Accept invite
-ra -> srv: ACCEPT INVITE
-srv -> cc: invite accepted
-cc -> ss: RESP: createSession()
-activate ss
-cc -> rs: RESP: createSession()
-activate rs
 
+' Sender device sends the public key and prekey bundle to the server
+sd -> cc: sending public key & prekey bundle
+cc -> srv: initiateKeyExchange(public key, prekey bundle)
 
+' Server sends the initiation message to the receiver device and receiver device verifies the sender identity
+activate rd
+srv -> rd: sends the initiation message
+rd -> rd: verify the sender identity
+rd -> rd: run Triple Diffie-Hellman (X3DH) to derive shared secret
 
-rnote over ss
-  Conversation is created
+' Failed Case: Sender identity cannot be verify or failed X3DH
+group sender identity cannot be verify or failed X3DH
+	rd -> srv: sender identity cannot be verify or failed X3DH
+	srv -> cc: return: failed to create conversation
+	cc -> sd: failed to create conversation
+	rnote over sd
+	Sequence prematurely end here
+	end note
+end
+
+' Default case: Sender identity verified and X3DH success
+rd -> r: display invite
+
+' Failed Case: Receiver denies the invite
+group receiver denies the invite
+	r -> rd: receiver Deny invite
+	rd --> srv: sends deny invite
+	srv --> cc: return: invite denied
+	cc -> sd: receiver denied the invite
+	rnote over sd
+	Sequence prematurely end here
+	end note
+end
+
+' Receiver accepts the invite
+r -> rd: accept invite
+rd --> srv: send initial message
+srv --> cc: return: initial message
+cc -> sd: receive initial message
+
+' Sender device receives the initial message and verify the receiver identity
+sd -> sd: verify the receiver identity
+sd -> sd: run Triple Diffie-Hellman (X3DH) to derive shared secret
+
+' Failed Case: Receiver identity cannot be verify or failed X3DH
+group sender identity cannot be verify or failed X3DH
+	sd -> sd: sender identity cannot be verify or failed X3DH
+	rnote over sd
+	Sequence prematurely end here
+	end note
+end
+
+rnote over sd
+  Conversation created successfully
   the users can start chatting
 end note
 
