@@ -9,45 +9,66 @@ skinparam sequence {
 	LifeLineBorderColor #Silver
 	LifeLineBackgroundColor #Gainsboro
 }
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary ChatRoomScreen as crs <<Boundary>>
+actor SendingUser as u <<Actor>>
+boundary SenderConversationWindow as scw <<Boundary>>
+control SenderConversationManager as scm <<Control>>
 control SendMessageRoute as smr <<Control>>
-control ReceiveQueue as rq <<Control>>
+control WebsocketHandler as ws <<Control>>
+control DatabaseManager as db <<Control>>
 boundary RecipientDevice as rd <<Boundary>>
 
 'Setup persistent objects here
 activate u
-activate a
-activate crs
+activate scw
+activate scm
 activate smr
-activate rq
+activate ws
+activate db
+activate rd
 
 '--- FLOW OF CONTROL STARTS HERE ---
-u -> a: Sending user composes a message in the \ntext box at the bottom of the window \nand presses send
+'The sending user composes a message.
+u -> scw: Sending user composes a message \nin the text box at the bottom of the \nwindow and presses send
+scw -> scm: newMessage(content) -> Message
 
-'Send the message
-a -> a: encryptMessage()
-a -> smr: POST /api/send_message json: {sending_user, receiving_user, message}
+'The sending user’s device encrypts the message and updates the ratchet state before sending the message.
+scm -> scm: seshKey.encrypt(message)\n -> EMessage em
+scm -> scm: updateSessionState()
+scm -> smr: POST /api/send_message \n\tjson::{recvId, roomId, em}
 
-'add message to recipient's receive queue
-smr -> rq: Message is added to the recipient's receive queue
+'Check if the user is online first.
+smr -> ws: query(recvId) -> bool
 
-group Recipient Offline
-  activate rd
-  smr -> rd: Send push notification
-  
+'Case 1: The recipient is online
+group Recipient Online (ws query is true)
+	'If the receiving user is online, they call Use Case 16: Receive Chat to receive the chat immediately.
+	smr -> ws: wsMessage(ws, recvId, em)
+	rnote over rd
+	"Use Case #16: Receive Chat" is called
+	immediately to receive the message.
+	end note
 end
 
-'TODO: This one looks a bit messy. Not sure how to center the use case 16 into the group
-group Recipient Online
-  smr -> rd: 
-  =="Use Case #16: Receive Chat" is called to receive chat immediately==
+'Case 2: The recipient is offline
+group Recipient Offline (ws query is false)
+	'If the receiving user is offline, a notification is sent to them and their device pulls down the message the next time they enter the chat room.
+	'The server enqueues the message into the receiver's receive queue.
+	smr -> db: recvId.messageQueue.enqueue(em)
+	smr --> rd: PUSH_NOTIF: new message available
+	rnote over rd
+	"Use Case #16: Receive Chat" is 
+	called the next time the recipient
+	enters into the conversation with
+	the sender.
+	end note
 end
-deactivate rd
 
-smr -> crs: sent message is displayed in user's chat room
+'Cleanup
+smr --> scm: RET json::{success, send_ack}
+scm -> scw: onSuccessfulSend(message)
+scw -> u: sent message is displayed \nin the chat room
 
 '--- FLOW OF CONTROL ENDS HERE   ---
 @enduml
