@@ -11,10 +11,46 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary ChatRoom as cr <<Boundary>>
+control DatabaseManager as dm <<Control>>
+boundary Database as db <<Database>>
+
 
 'Setup persistent objects here
+activate u
+activate a 
+
 
 '--- FLOW OF CONTROL STARTS HERE ---
+'User is logged in
+u -> a: <User is already logged in>
+
+'User accesses exsisting chat and clicks options menu'
+u -> cr: <User is in an exsisting chatroom and clicks option menu button>
+activate cr
+
+'User clicks "Delete Chat" button and confirms that they want to delete the chat'
+u -> cr: User clicks "Delete Chat" button and confirms that they want to delete the chat
+
+'Chatroom sends delete chat request to the database manager'
+cr -> dm: delete chat request gets sent to the database manager with the chats UUID
+activate dm
+
+'Database manager marks the chat as "skipped" to maintain the continuity of the ratcheting key system in place
+dm -> db: database manager marks the chat as "skipped" to maintain the ratcheting key system
+activate db
+
+'Database manager hides the chat from the user
+dm -> cr: database hides the chat from the user
+
+'Database manager notifies the user that the chat has been deleted'
+dm -> u: database manager notifies the user that the chat has been deleted
+
+
+
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
