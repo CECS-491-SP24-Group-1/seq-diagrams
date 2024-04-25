@@ -10,38 +10,60 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend bottom
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Sender|
+	|<#blue> | Receiver|
+endlegend
+
 'Setup the objects involved here
 actor Sender as s <<Actor>> #red
 boundary SenderDevice as sd <<Boundary>> #red
-control VaultManager as vm <<Control>>
-entity Vault as v <<Entity>>
-control ChatController as cc <<Control>>
+boundary SenderConversationWindow as scw <<Boundary>> #red
+control SenderConversationManager as scm <<Control>> #red
+control SenderVaultManager as svm <<Control>> #red
 control Server as srv <<Control>>
+control WSHandler as ws <<Control>>
+control ReceiverVaultManager as rvm <<Control>> #blue
+control ReceiverConversationManager as rcm <<Control>> #blue
+boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
 boundary ReceiverDevice as rd <<Boundary>> #blue
 actor Receiver as r <<Actor>> #blue
 
-
 'Setup persistent objects here
 activate s
-activate srv
-activate r
 activate sd
-activate vm
+activate svm
+activate srv
+activate ws
+activate rvm
+activate rd
+activate r
 
 '--- FLOW OF CONTROL STARTS HERE ---
-
-' Sender press creates conversation and select the user from the contact list
+'Sender press creates conversation and select the user from the contact list. The sender's vault manager gets the user's details.
 s -> sd: click "Create Conversation"
-sd -> vm: getContactList()
-vm -> v: get: contacts
-activate v
-v --> vm: return: contact list
-vm --> sd: return: contact list
-deactivate v
-
-sd -> s: display contact list
+sd -> svm: getContactList()
+svm --> sd: return: Contacts[]
+sd -> s: displays contact list
 s -> sd: select contact
-activate cc
+
+'Sender's device creates a new conversation handler and window and performs the first steps of the cryptographic key exchange operation.
+sd -> scw: open(uuid receiver)
+activate scw
+scw -> scm: createConversation(\n\tuuid receiver, \n\tPublicKey receiverPK\n)
+activate scm
+scm -> svm: getSecrets()
+scm -> scm: createSession(uuid receiver) -> Session
+
+
+'---------------------------------------------------
 
 ' Sender device sends the public key and prekey bundle to the server
 sd -> cc: sending public key & prekey bundle
@@ -99,12 +121,6 @@ rnote over sd
   Conversation created successfully
   the users can start chatting
 end note
-
-legend bottom
-	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
-	|<#red> | Sender|
-	|<#blue> | Receiver|
-endlegend
 
 '--- FLOW OF CONTROL ENDS HERE   ---
 @enduml
