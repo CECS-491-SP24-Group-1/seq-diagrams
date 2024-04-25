@@ -10,10 +10,44 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 'Setup the objects involved here
+actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary ChatRoomScreen as crs <<Boundary>>
+control SendMessageRoute as smr <<Control>>
+control ReceiveQueue as rq <<Control>>
+boundary RecipientDevice as rd <<Boundary>>
 
 'Setup persistent objects here
+activate u
+activate a
+activate crs
+activate smr
+activate rq
 
 '--- FLOW OF CONTROL STARTS HERE ---
-'--- FLOW OF CONTROL ENDS HERE   ---
+u -> a: Sending user composes a message in the \ntext box at the bottom of the window \nand presses send
 
+'Send the message
+a -> a: encryptMessage()
+a -> smr: POST /api/send_message json: {sending_user, receiving_user, message}
+
+'add message to recipient's receive queue
+smr -> rq: Message is added to the recipient's receive queue
+
+group Recipient Offline
+  activate rd
+  smr -> rd: Send push notification
+  
+end
+
+'TODO: This one looks a bit messy. Not sure how to center the use case 16 into the group
+group Recipient Online
+  smr -> rd: 
+  =="Use Case #16: Receive Chat" is called to receive chat immediately==
+end
+deactivate rd
+
+smr -> crs: sent message is displayed in user's chat room
+
+'--- FLOW OF CONTROL ENDS HERE   ---
 @enduml
