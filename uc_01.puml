@@ -98,7 +98,7 @@ group User doesn't exist
 end
 
 rnote over u
-Email verification via "Use Case #8" can
+Email verification via "Use Case #8a" can
 occur asynchronously after this point.
 endrnote
 
@@ -114,7 +114,7 @@ vm --> rw: return: Vault object
 rw -> u: prompts to verify\n public key
 u -> rw: clicks "Verify Public Key"
 
-== "Use Case #8: Challenge User" is called to validate the public key ==
+== "Use Case #8b: Challenge User - Pubkey" is called to validate the public key ==
 
 'In-app challenges are completed
 rw -> u: shows that the public \nkey was validated
