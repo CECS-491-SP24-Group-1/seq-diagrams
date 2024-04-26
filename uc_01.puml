@@ -64,7 +64,7 @@ rw -> rw: generateVaultId() -> vaultId
 rw -> rur: POST /api/users/register json::{user_info}
 
 'Server checks if the account already exists
-rur -> rur: check validity of \nusername, email, pubkey
+rur -> rur: checkValidity(username, email, pubkey)
 rur -> db: QUERY username|email
 
 group User exists
