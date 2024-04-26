@@ -1,6 +1,5 @@
-
 @startuml uc11
-title "Use Case #11: Leave chat room "
+title "Use Case #11: Leave Conversation"
 
 'Styling goes here
 hide footbox
@@ -11,41 +10,55 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-Actor User as User <<Actor>>
-boundary Device as Device <<Boundary>>
-control Vault as Vault <<Control>>
+Actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary ConversationWindow as cw <<Boundary>> #red
+control ConversationManager as cm <<Control>> #red
+control VaultManager as vm <<Control>> #red
+control WSHandler as ws <<Control>> #silver
 
 'Setup persistent objects here
-activate User
-activate Device 
+activate u
+activate a
+activate cw
+activate cm
+activate vm
+activate ws
 
 '--- FLOW OF CONTROL STARTS HERE ---
-User -> Device: Selects option to leave chat room/closes app
-activate Vault
-Device -> Vault : Persists saved chats to
+'User select the option to leave the chat room or they leave the app.
+u -> a: Navigates away from the\n current conversation window
+a -> cw: destroy()
+cw -> cm: cleanup(savedMessages)
+cm -> ws: disconnect(user.id, convo.id)
+deactivate cw
 
-'Note included in use case
-rnote over Vault
-Persists saved chats might not be implemented
-endrnote
+'User’s device persists saved chats to the vault.
+cm -> vm: saveMessages(cid, savedMessages)
 
+'User’s device saves the chat session to their vault.
+cm -> vm: saveSession(cid, session)
 
-group Chats are saved
-Device -> Vault: Saves chats to
-Vault -> Vault: Encrypts saved chats
-Vault -> Vault : Stores encrypted chats
-end group
+'Unsaved messages are destroyed and zeroed out to avoid leakage of confidential details
+cm -> cm: eraseUnsavedMessages()
 
-group Chats are not saved
-Vault -> Vault : unsaved messages are deleted
-end group
-deactivate Vault
+== "Use Case #7: Encrypt Vault" is called to save the vault to local storage ==
 
-group User in app
-Device -> User: Display chat list page
-end group
-
+'User’s device displays the chats list page. This step is skipped if the user left the app or sent it to the background.
+a -> u: show chats list page, if still in focus
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
