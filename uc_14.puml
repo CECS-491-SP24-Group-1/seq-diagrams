@@ -30,8 +30,8 @@ control Vault_1 as v1 <<Control>>
 database Server as Server
 
 control Vault_2 as v2<<Control>>
-boundary ReceivingDevice as d2 <<Boundary>>
-Actor ReceivingUser as RUser <<Actor>>
+boundary ReceivingDevice as d2 <<Boundary>> #red
+Actor ReceivingUser as RUser <<Actor>> #red
 
 
 
