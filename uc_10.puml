@@ -10,13 +10,25 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-Actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary ConversationWindow as cw <<Boundary>>
-control ConversationManager as cm <<Control>>
-control VaultManager as vm <<Control>>
-control WSHandler as ws <<Control>>
+Actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary ConversationWindow as cw <<Boundary>> #red
+control ConversationManager as cm <<Control>> #red
+control VaultManager as vm <<Control>> #red
+control WSHandler as ws <<Control>> #silver
 
 'Setup persistent objects here
 activate u
