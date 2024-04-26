@@ -10,9 +10,22 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
+actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
 boundary ChatRoom as cr <<Boundary>>
 control DatabaseManager as dm <<Control>>
 boundary Database as db <<Database>>
