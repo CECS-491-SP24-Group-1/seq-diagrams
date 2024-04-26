@@ -27,7 +27,7 @@ endlegend
 actor SendingUser as u <<Actor>> #red
 boundary SenderConversationWindow as scw <<Boundary>> #red
 control SenderConversationManager as scm <<Control>> #red
-control SendMessageRoute as smr <<Control>> #silver
+control ChatRouter as cr <<Control>> #silver
 control WebsocketHandler as ws <<Control>> #silver
 control DatabaseManager as db <<Control>> #silver
 boundary RecipientDevice as rd <<Boundary>> #blue
@@ -36,7 +36,7 @@ boundary RecipientDevice as rd <<Boundary>> #blue
 activate u
 activate scw
 activate scm
-activate smr
+activate cr
 activate ws
 activate db
 activate rd
@@ -49,15 +49,15 @@ scw -> scm: newMessage(content) -> Message
 'The sending user’s device encrypts the message and updates the ratchet state before sending the message.
 scm -> scm: seshKey.encrypt(message)\n -> EMessage em
 scm -> scm: updateSessionState()
-scm -> smr: POST /api/conversations/:roomId/send \n\tjson::{recvId, em}
+scm -> cr: POST /api/conversations/:roomId/send \n\tjson::{recvId, em}
 
 'Check if the user is online first.
-smr -> ws: query(recvId) -> bool
+cr -> ws: query(recvId) -> bool
 
 'Case 1: The recipient is online
 group Recipient Online (ws query is true)
 	'If the receiving user is online, they call Use Case 16: Receive Chat to receive the chat immediately.
-	smr -> ws: wsMessage(ws, recvId, em)
+	cr -> ws: wsMessage(ws, recvId, em)
 	rnote over rd
 	"Use Case #16: Receive Chat" is called
 	immediately to receive the message.
@@ -68,8 +68,8 @@ end
 group Recipient Offline (ws query is false)
 	'If the receiving user is offline, a notification is sent to them and their device pulls down the message the next time they enter the chat room.
 	'The server enqueues the message into the receiver's receive queue.
-	smr -> db: recvId.messageQueue.enqueue(roomId, em)
-	smr --> rd: PUSH_NOTIF: new message available
+	cr -> db: recvId.messageQueue.enqueue(roomId, em)
+	cr --> rd: PUSH_NOTIF: new message available
 	rnote over rd
 	"Use Case #16: Receive Chat" is 
 	called the next time the recipient
@@ -79,7 +79,7 @@ group Recipient Offline (ws query is false)
 end
 
 'Cleanup
-smr --> scm: RET json::{success, send_ack}
+cr --> scm: RET json::{success, send_ack}
 scm -> scw: onSuccessfulSend(message)
 scw -> u: sent message is displayed \nin the chat room
 '--- FLOW OF CONTROL ENDS HERE   ---

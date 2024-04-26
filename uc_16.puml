@@ -27,14 +27,14 @@ endlegend
 actor ReceivingUser as u <<Actor>> #blue
 boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
 control ReceiverConversationManager as rcm <<Control>> #blue
-control SendMessageRoute as smr <<Control>> #silver
+control ChatRouter as cr <<Control>> #silver
 control WebsocketHandler as ws <<Control>> #silver
 control DatabaseManager as db <<Control>> #silver
 'boundary SenderDevice as sd <<Boundary>>
 
 'Setup persistent objects here
 activate u
-activate smr
+activate cr
 activate ws
 activate db
 'activate sd
@@ -71,12 +71,12 @@ group Recipient Enters In Convo Window (Offline)
 	activate rcm
 
 	'The recipient’s device makes a request for unread messages.
-	rcm -> smr: POST /api/conversations/:roomId/receive \n\tjson::{recvId}
+	rcm -> cr: POST /api/conversations/:roomId/receive \n\tjson::{recvId}
 
 	'The server dequeues the unread messages from the receiver's queue and sends them down to the receiver in an array, from oldest to newest.
-	smr -> db: recvId.messageQueue.peekAll(roomId, em) \n\t -> EMessage[] msgs
-	db --> smr: return: msgs
-	smr --> rcm: RESP json::{success, msgs}
+	cr -> db: recvId.messageQueue.peekAll(roomId, em) \n\t -> EMessage[] msgs
+	db --> cr: return: msgs
+	cr --> rcm: RESP json::{success, msgs}
 
 	'The receiver's device begins processing each message
 	rnote over rcw
@@ -96,13 +96,13 @@ rcm -> rcw: onSuccessfulReceive(msg)
 rcw -> u: received message is displayed \nin the chat room
 
 'The recipient’s device sends a read receipt to the server to be delivered to the sender, if enabled
-rcm -> smr: POST /api/conversations/:roomId/receive_ack \n\tjson::{em.id}
+rcm -> cr: POST /api/conversations/:roomId/receive_ack \n\tjson::{em.id}
 group Recipient Has Read Receipts On
-	smr -> ws: wsMessage(ws, recvId, read_receipt, em.id)
+	cr -> ws: wsMessage(ws, recvId, read_receipt, em.id)
 end
 
 'The server removes the message from the queue and securely erases it.
-smr -> db: recvId.messageQueue.eject(roomId, em.id)
+cr -> db: recvId.messageQueue.eject(roomId, em.id)
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
