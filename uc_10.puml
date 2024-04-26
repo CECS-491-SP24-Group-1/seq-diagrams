@@ -1,4 +1,3 @@
-
 @startuml uc10
 title "Use Case #10: Enter Conversation"
 
@@ -12,31 +11,42 @@ skinparam sequence {
 }
 
 'Setup the objects involved here
-Actor User as User <<Actor>>
-boundary Device as Device <<Boundary>>
-control Vault as Vault <<Control>>
-control Chat_Room as Chat_Room<<Control>>
-database Server
+Actor User as u <<Actor>>
+boundary App as a <<Boundary>>
+boundary ConversationWindow as cw <<Boundary>>
+control ConversationManager as cm <<Control>>
+control VaultManager as vm <<Control>>
+control WSHandler as ws <<Control>>
+
 'Setup persistent objects here
-activate User
-activate Device 
-activate Vault
-activate Chat_Room
-activate Server
+activate u
+activate a
+activate vm
+activate ws
+
 '--- FLOW OF CONTROL STARTS HERE ---
+'User clicks on chat to load.
+u -> a: Selects the conversation \nto enter
 
-User -> Device : Clicks chat_room
-Device -> Vault : Sends request for chat sessions
-Vault -> Device : Returns chat sessions
-Device -> User:  Displays chat page from vault
-Device -> Server: Poll for unread messages
-Server -> Device: Sends unread messages
-Device -> User: Displays unread messages
+'User’s device loads the chat session from their vault.
+a -> vm: loadConversation(cid) -> Conversation convo
+vm --> cm: create: ConversationManager
+activate cm
+cm -> cm: loadSession()
 
-== Device calls "Use Case #16: Receive Chat" on each unread message in the queue ==
-Server -> Device: Pushes unread chats
+'User’s device displays the chat page.
+a -> cw: show()
+activate cw
 
+'User’s device restores saved chats from the vault.
+cm -> vm: getMessages(convo.id) -> msgs[]
+cm -> cw: insertSavedMessages(msgs)
 
+== "Use Case #16: Receive Message" is called to pull down unread messages from the server ==
+
+cm -> ws: connect(user.id, convo.id)
+
+== "Use Case #16: Receive Message" is called whenever the websocket has a new message for this user ==
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
