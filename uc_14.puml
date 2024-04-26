@@ -11,9 +11,21 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-Actor InitiatingUser as IUser <<Actor>>
-boundary SendingDevice as d1 <<Boundary>>
+Actor InitiatingUser as IUser <<Actor>> #red
+boundary SendingDevice as d1 <<Boundary>> #red
 control Vault_1 as v1 <<Control>>
 database Server as Server
 

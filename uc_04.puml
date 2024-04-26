@@ -27,14 +27,14 @@ activate a
 'User is logged in
 u -> a: <User is already logged in>
 
-'User accesses exsisting chat and clicks options menu'
+'User accesses existing chat and clicks options menu
 u -> cr: <User is in an exsisting chatroom and clicks option menu button>
 activate cr
 
-'User clicks "Delete Chat" button and confirms that they want to delete the chat'
+'User clicks "Delete Chat" button and confirms that they want to delete the chat
 u -> cr: User clicks "Delete Chat" button and confirms that they want to delete the chat
 
-'Chatroom sends delete chat request to the database manager'
+'Chatroom sends delete chat request to the database manager
 cr -> dm: delete chat request gets sent to the database manager with the chats UUID
 activate dm
 
@@ -45,7 +45,7 @@ activate db
 'Database manager hides the chat from the user
 dm -> cr: database hides the chat from the user
 
-'Database manager notifies the user that the chat has been deleted'
+'Database manager notifies the user that the chat has been deleted
 dm -> u: database manager notifies the user that the chat has been deleted
 
 

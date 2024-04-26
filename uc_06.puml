@@ -1,4 +1,4 @@
-@startuml uc01
+@startuml uc06
 title "Use Case #6: Delete Account"
 
 'Styling goes here
@@ -10,46 +10,57 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
 
-'Setup the objects'
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary UserSettingScreen as uss <<Boundary>>
-control DatabaseManager as dm <<Control>>
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
+'Setup the objects
+actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary UserSettingsScreen as uss <<Boundary>>
+control DatabaseManager as db <<Control>>
 boundary Database as db <<Boundary>>
 
-'Setup persistent objects here'
+'Setup persistent objects here
 activate u
 activate a
 
-'--- FLOW OF CONTROL STARTS HERE ---'
+'--- FLOW OF CONTROL STARTS HERE ---
 
-'User navigates to the "User settings page"'
+'User navigates to the "User settings page
 u -> a: <user navigates to the User Settings page>
 a -> uss: show()
 activate uss
 
-'User clicks "Delete Account" button'
+'User clicks "Delete Account" button
 u -> uss: <user clicks "Delete Account" button>
 
-'Users device sends a deletion request to the server'
-uss -> dm: User sends a deletion request to the server
-activate dm
+'Users device sends a deletion request to the server
+uss -> db: User sends a deletion request to the server
+activate db
 
 
-'Server challenges user to verify the authenticity of the user'
-dm -> u: server challenges user to verify authenticity and sends email containing confirmation link to confirm deletion
+'Server challenges user to verify the authenticity of the user
+db -> u: server challenges user to verify authenticity and sends email containing confirmation link to confirm deletion
 
 'User recieves the email and clicks the link to finish the process of deleting account
-u -> dm: User uses email link to confirm deletion of their account
+u -> db: User uses email link to confirm deletion of their account
 
 'Database manager marks the account for deletion and sends the user a notification via email
-dm -> db: Database manager marks account in the database for deletion
+db -> db: Database manager marks account in the database for deletion
 activate db
 
 'Database manager sends notification email once account is marked for deletion
-dm -> u: Database manager sends notification abount successful deletion mark
-
+db -> u: Database manager sends notification abount successful deletion mark
+'--- FLOW OF CONTROL ENDS HERE   ---
 
 
 @enduml

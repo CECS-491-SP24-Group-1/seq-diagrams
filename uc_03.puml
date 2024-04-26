@@ -16,9 +16,10 @@ skinparam legend {
 	entrySeparator #GhostWhite
 }
 
-legend bottom
+legend top
 	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
 	|<#red> | Sender|
+	|<#silver> | Server|
 	|<#blue> | Receiver|
 endlegend
 
@@ -28,8 +29,8 @@ boundary SenderDevice as sd <<Boundary>> #red
 boundary SenderConversationWindow as scw <<Boundary>> #red
 control SenderConversationManager as scm <<Control>> #red
 control SenderVaultManager as svm <<Control>> #red
-control Server as srv <<Control>>
-control WSHandler as ws <<Control>>
+control Server as srv <<Control>> #silver
+control WSHandler as ws <<Control>> #silver
 control ReceiverVaultManager as rvm <<Control>> #blue
 control ReceiverConversationManager as rcm <<Control>> #blue
 boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
