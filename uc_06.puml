@@ -68,6 +68,7 @@ deactivate uss
 
 ' NOTE: Not sure if this part is correct because route no longer exisis
 dur --> a: RESP json::{deleteAccountSuccess}
+a -> a: forceLogout()
 
 note over a
   The account has been marked for deletion.
