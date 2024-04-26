@@ -29,8 +29,7 @@ boundary SenderDevice as sd <<Boundary>> #red
 boundary SenderConversationWindow as scw <<Boundary>> #red
 control SenderConversationManager as scm <<Control>> #red
 control SenderVaultManager as svm <<Control>> #red
-control Server as srv <<Control>> #silver
-control WSHandler as ws <<Control>> #silver
+control ChatRouter as cr <<Control>> #silver
 control ReceiverVaultManager as rvm <<Control>> #blue
 control ReceiverConversationManager as rcm <<Control>> #blue
 boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
@@ -41,19 +40,18 @@ actor Receiver as r <<Actor>> #blue
 activate s
 activate sd
 activate svm
-activate srv
-activate ws
+activate cr
 activate rvm
 activate rd
 activate r
 
 '--- FLOW OF CONTROL STARTS HERE ---
 'Sender press creates conversation and select the user from the contact list. The sender's vault manager gets the user's details.
-s -> sd: click "Create Conversation"
+s -> sd: clicks "Create Conversation"
 sd -> svm: getContactList()
 svm --> sd: return: Contacts[]
 sd -> s: displays contact list
-s -> sd: select contact
+s -> sd: user selects contact
 
 'Sender's device creates a new conversation handler and window and performs the first steps of the cryptographic key exchange operation.
 sd -> scw: open(uuid receiver)
@@ -61,67 +59,78 @@ activate scw
 scw -> scm: createConversation(\n\tuuid receiver, \n\tPublicKey receiverPK\n)
 activate scm
 scm -> svm: getSecrets()
-scm -> scm: createSession(uuid receiver) -> Session
+scm -> scm: createSession(uuid receiver) \n\t-> Session sesh
 
+'The initiating party creates a message containing their public key and prekey bundle and sends it to the server. This is the Offer phase of the key exchange operation.
+rnote over s, svm
+	"Use Case #15: Send Message" is called to issue a conversation creation request to the other party using the following methods:
+endrnote
+scm -> scm: createOfferMessage(sesh) \n\t-> om
 
-'---------------------------------------------------
+'The server sends the initiation message to the responding party.
+scm -> cr: POST /api/conversations/:roomId/send \n\tjson::{recvId, om}
 
-' Sender device sends the public key and prekey bundle to the server
-sd -> cc: sending public key & prekey bundle
-cc -> srv: initiateKeyExchange(public key, prekey bundle)
+'===================== receiver's turn to act (1)
 
-' Server sends the initiation message to the receiver device and receiver device verifies the sender identity
-activate rd
-srv -> rd: sends the initiation message
-rd -> rd: verify the sender identity
-rd -> rd: run Triple Diffie-Hellman (X3DH) to derive shared secret
+'The responding user receives the chat via Use Case 16: Receive Chat and detects the create request.
+rnote over r, rvm
+	"Use Case #16: Receive Message" is called to get the creation request on the receiver side.
+	They can choose to either honor or ignore the request.
+endrnote
+cr --> rd: <MSG containing creation request is received>
+rd -> r: Shows that a new \nconversation is available \nand asks if the user wants \nto accept or deny it
 
-' Failed Case: Sender identity cannot be verify or failed X3DH
-group sender identity cannot be verify or failed X3DH
-	rd -> srv: sender identity cannot be verify or failed X3DH
-	srv -> cc: return: failed to create conversation
-	cc -> sd: failed to create conversation
-	rnote over sd
-	Sequence prematurely end here
-	end note
+'Recipient can choose to honor the request or ignore it
+'Case 1: The request is ignored
+group Recipient Ignores Conversation Creation Request
+	r -> rd: deny conversation \nrequest
+	rd -> cr: POST /api/conversations/:roomId/send \n\tjson::{recvId, <request rejected>}
+	rnote over rvm, rd
+		The flow of control ends here. The sender is informed that the receiver denied the request. The sender
+		can choose to send another request and vice versa, but this must occur as a new conversation.
+	endrnote
 end
 
-' Default case: Sender identity verified and X3DH success
-rd -> r: display invite
+'The responding party fetches the message and verifies the identity of the initiating party.
+r -> rd: accept conversation \nrequest
 
-' Failed Case: Receiver denies the invite
-group receiver denies the invite
-	r -> rd: receiver Deny invite
-	rd --> srv: sends deny invite
-	srv --> cc: return: invite denied
-	cc -> sd: receiver denied the invite
-	rnote over sd
-	Sequence prematurely end here
-	end note
-end
+'A conversation instance is started for the receiving party.
+rd -> rcw: open(uuid sender)
+activate rcw
+rcw -> rcm: createConversation(\n\tuuid sender, \n\tPublicKey senderPK\n)
+activate rcm
+rcm -> rvm: getSecrets()
+rcm -> rcm: createSession(uuid sender) \n\t-> Session sesh
 
-' Receiver accepts the invite
-r -> rd: accept invite
-rd --> srv: send initial message
-srv --> cc: return: initial message
-cc -> sd: receive initial message
+'Next, the responding party runs the Triple Diffie-Hellman (X3DH) operation to derive their shared secret.
+rcm -> rcm: verifyPeer(PublicKey sender)
+rcm -> rcm: sesh.x3dh() \n\t-> PrivateKey sharedSecret
+rcm -> rcw: markMutable("\n\tcomms opened with sender\n")
 
-' Sender device receives the initial message and verify the receiver identity
-sd -> sd: verify the receiver identity
-sd -> sd: run Triple Diffie-Hellman (X3DH) to derive shared secret
+'Finally, an initial message is created, encrypted, and sent to the server. This is the Acknowledgement phase of the key exchange operation.
+rnote over r, rvm
+	"Use Case #15: Send Message" is called to acknowledge the conversation creation request with the other party using the following methods:
+endrnote
+rcm -> rcm: createAckMessage(sesh) \n\t-> ackm
 
-' Failed Case: Receiver identity cannot be verify or failed X3DH
-group sender identity cannot be verify or failed X3DH
-	sd -> sd: sender identity cannot be verify or failed X3DH
-	rnote over sd
-	Sequence prematurely end here
-	end note
-end
+'The server sends the ack message to the initiating party.
+rcm -> cr: POST /api/conversations/:roomId/send \n\tjson::{sendId, ackm}
 
-rnote over sd
-  Conversation created successfully
-  the users can start chatting
-end note
+'===================== sender's turn to act (2)
+
+'The sending user receives the chat via Use Case 16: Receive Chat and detects the ack request.
+rnote over s, svm
+	"Use Case #16: Receive Message" is called to get the ack message on the sender side.
+endrnote
+cr --> scm: <MSG containing acknowledgement is received>
+
+'The initiating party fetches the message and verifies the identity of the responding party. Next, the initiating party runs the Triple Diffie-Hellman (X3DH) operation to derive their shared secret.
+scm -> scm: verifyPeer(PublicKey receiver)
+scm -> scm: sesh.x3dh() \n\t-> PrivateKey sharedSecret
+scm -> scw: markMutable("\n\tcomms opened with receiver\n")
+
+'At this point, both parties are ready to communicate.
+== Both parties possess a shared secret derived via X3DH. This shared secret allows both parties to securely communicate \nfrom this point forward. Any party can call "Use Case 15" to send a message, which will be received on the other end via \n"Use Case 16". ==
 
 '--- FLOW OF CONTROL ENDS HERE   ---
 @enduml
