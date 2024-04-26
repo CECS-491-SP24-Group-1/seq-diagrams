@@ -41,13 +41,13 @@ activate r
 s -> sc: create
 activate sc
 sc -> srv: requestUser()
-srv -> r: converseWithUser()
+srv -> r: converseWithUser
 
 'Receiver accepts the conversation and sends ACK to the sender
 r -> rc: create
 activate rc
 rc -> srv: requestAck()
-srv -> s: converseWithUser()
+srv -> s: converseWithUser
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
