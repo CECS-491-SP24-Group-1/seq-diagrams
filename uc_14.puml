@@ -134,12 +134,6 @@ group Recipient Honors Conversation Deletion Request
 	rcw -> r: Receiver is sent back to the conversations list
 	deactivate rcw
 end
-
-
-
-
-
-
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
