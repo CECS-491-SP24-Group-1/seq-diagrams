@@ -24,14 +24,18 @@ endlegend
 
 'Setup the objects
 actor User as u <<Actor>> #red
+boundary UserEmail as ue <<Boundary>> #red
 boundary App as a <<Boundary>> #red
-boundary UserSettingsScreen as uss <<Boundary>>
+boundary UserSettingsScreen as uss <<Boundary>> #red
+boundary DeleteUserRoute as dur <<Boundary>> 
 control DatabaseManager as db <<Control>>
 boundary Database as db <<Boundary>>
 
 'Setup persistent objects here
 activate u
 activate a
+activate db
+activate ue
 
 '--- FLOW OF CONTROL STARTS HERE ---
 
@@ -44,22 +48,33 @@ activate uss
 u -> uss: <user clicks "Delete Account" button>
 
 'Users device sends a deletion request to the server
-uss -> db: User sends a deletion request to the server
-activate db
-
+uss -> dur: POST /api/users/deleteuser json::{query}
+activate dur
 
 'Server challenges user to verify the authenticity of the user
-db -> u: server challenges user to verify authenticity and sends email containing confirmation link to confirm deletion
+=="Use Case #8: Challenge User" is called to verify the authenticity of the user==
 
 'User recieves the email and clicks the link to finish the process of deleting account
-u -> db: User uses email link to confirm deletion of their account
+dur -> ue: sendEmail(useremail, deleteAccountSuccessMessage)
+ue -> dur: User uses email link to confirm deletion of their account
+dur -> db: DELETE /api/users/deleteuser json::{query}
 
 'Database manager marks the account for deletion and sends the user a notification via email
 db -> db: Database manager marks account in the database for deletion
-activate db
 
 'Database manager sends notification email once account is marked for deletion
-db -> u: Database manager sends notification abount successful deletion mark
+db --> dur: return: deleteAccountSuccess
+deactivate uss
+
+' NOTE: Not sure if this part is correct because route no longer exisis
+dur --> a: RESP json::{deleteAccountSuccess}
+
+note over a
+  The account has been marked for deletion.
+  User is navigated back to the Sign Up page.
+end note
+
+dur --> ue: sendEmail(useremail, deleteAccountSuccessMessage)
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 
