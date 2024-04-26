@@ -19,69 +19,98 @@ skinparam legend {
 
 legend top
 	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
-	|<#red> | Clientside|
-	|<#silver> | Serverside|
+	|<#red> | Sender|
+	|<#silver> | Server|
+	|<#blue> | Receiver|
 endlegend
 
 'Setup the objects involved here
-Actor InitiatingUser as IUser <<Actor>> #red
-boundary SendingDevice as d1 <<Boundary>> #red
-control Vault_1 as v1 <<Control>>
-database Server as Server
-
-control Vault_2 as v2<<Control>>
-boundary ReceivingDevice as d2 <<Boundary>> #red
-Actor ReceivingUser as RUser <<Actor>> #red
-
-
+actor Sender as s <<Actor>> #red
+boundary SenderDevice as sd <<Boundary>> #red
+boundary SenderConversationWindow as scw <<Boundary>> #red
+control SenderConversationManager as scm <<Control>> #red
+control SenderVaultManager as svm <<Control>> #red
+control ChatRouter as cr <<Control>> #silver
+control ReceiverVaultManager as rvm <<Control>> #blue
+control ReceiverConversationManager as rcm <<Control>> #blue
+boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
+boundary ReceiverDevice as rd <<Boundary>> #blue
+actor Receiver as r <<Actor>> #blue
 
 'Setup persistent objects here
-activate IUser
-activate d1
+activate s
+activate sd
+activate scw
+activate scm
+activate svm
+activate cr
+activate rvm
+activate rcm
+activate rcw
+activate rd
+activate r
 
 '--- FLOW OF CONTROL STARTS HERE ---
-IUser -> d1 : User clicks on \n"Delete" option
-d1 -> IUser : Asks if they want to delete conversation
+'The user clicks on the options button for the chat room and selects “Delete”. This is the initiating party.
+s -> sd: User clicks on "Delete" \noption in the conversation \nsettings
 
-rnote over IUser
-User will be warned that the other party's 
-chat room might not be immediately deleted
+'The user’s device asks the user if they want to delete the chat. The user will be warned that the chat room on the other side may not be immediately deleted once this is done
+sd -> s: Asks if they want to delete \nconversation and warns \nthat other side may not \nfollow suit
+
+'The user clicks “Yes” on the confirmation prompt asking them to delete the chat.
+s -> sd: Clicks yes on the \nconfirmation prompt
+
+'The user’s device creates a deletion request for the other user and calls Use Case 15: Send Chat to pass the request to the other party.
+rnote over s, svm
+	"Use Case #15: Send Message" is called to issue a conversation deletion request to the other party using the following methods:
+endrnote
+scm -> scm: requestConvoDelete() -> \n\tEMessage convoDeletionReq
+scm -> cr: POST /api/conversations/:roomId/send \n\tjson::{recvId, convoDeletionReq}
+
+'User is brought back to the chats list and the chat is removed from the list.
+rnote over s, svm
+	"Use Case #11: Leave Conversation" is called to cleanup objects on the sender side, but the vault save step is skipped.
 endrnote
 
-IUser -> d1: Clicks yes on \nthe confirmation prompt
-activate Server
-d1 -> Server: Sends a deletion request 
+'The initiating user’s device nullifies the double ratchet, session keypair, and the session is marked as closed. The session is then purged from their vault.
+scm -> scm: destroySession(convoId)
+scm -> svm: deleteConversation(convoId)
+scm -> scw: informSuccessfulDeletion()
+deactivate scm
+deactivate scw
+sd -> s: User is sent back to the \nconversations list
 
-==Server calls "Use case 15: Send chat" to pass the request to other party ==
+'===================== receiver's turn to act
 
-d1 -> d1: Nullifies double ratchet and session key pair
-d1 -> Server: Marks session as closed
-activate v1
-d1 -> v1 : Sends call to purge session
-v1 -> v1: Purges session 
+'The responding user receives the chat via Use Case 16: Receive Chat and detects the close request.
+rnote over r, rvm
+	"Use Case #16: Receive Message" is called to get the deletion request on the receiver side, but a read
+	receipt is not sent. They can choose to either honor or ignore the request.
+endrnote
+cr --> rcm: <MSG containing deletion request is received>
 
-deactivate IUser
-deactivate d1
-deactivate v1
-==Responding user receives close request via "Use case 16: Receive Chat==
+'The responding user nullifies the double ratchet, session keypair, and the session is marked as closed.
+rcm -> rcm: destroySession(convoId)
+rcm -> rcw: markImmutable("\n\tother party terminated \n\tcommunications\n")
+rcw -> r: Prevent further input and \nshow the warning about the \nconversation being terminated
 
-'Receiving user activation
-activate RUser
-activate d2
 
-Server -> d2: Close request sent
-d2-> RUser: Displays \nconfirmation message
-RUser -> d2 : Responding \nuser approves close request
-d2 -> d2: Nullifies double ratchet\n and session key pair
-d2 -> Server: Marks session as closed
-activate v2
-d2 -> v2: Sends call to purge session 
-v2 -> v2: Purges session
 
-activate IUser
-activate d1
-d1 -> IUser: Sends message that\n chat has been terminated
-d2 -> RUser: Sends message that\nchat has been terminated
+
+
+
+'The responding user’s chat has a message informing them that the initiating user terminated the chat session and sending of messages is disallowed.
+
+
+
+
+
+
+
+
+
+
+
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
