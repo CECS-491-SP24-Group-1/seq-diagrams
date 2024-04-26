@@ -10,13 +10,26 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Sender|
+	|<#silver> | Server|
+	|<#blue> | Receiver|
+endlegend
+
 'Setup the objects involved here
-actor ReceivingUser as u <<Actor>>
-boundary ReceiverConversationWindow as rcw <<Boundary>>
-control ReceiverConversationManager as rcm <<Control>>
-control SendMessageRoute as smr <<Control>>
-control WebsocketHandler as ws <<Control>>
-control DatabaseManager as db <<Control>>
+actor ReceivingUser as u <<Actor>> #blue
+boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
+control ReceiverConversationManager as rcm <<Control>> #blue
+control SendMessageRoute as smr <<Control>> #silver
+control WebsocketHandler as ws <<Control>> #silver
+control DatabaseManager as db <<Control>> #silver
 'boundary SenderDevice as sd <<Boundary>>
 
 'Setup persistent objects here

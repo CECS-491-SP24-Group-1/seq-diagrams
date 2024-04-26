@@ -10,12 +10,24 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary LookupUserScreen as lus <<Boundary>>
-control LookupUsersRoute as lur <<Control>>
-control DatabaseManager as dbm <<Control>>
+actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary LookupUserScreen as lus <<Boundary>> #red
+control LookupUsersRoute as lur <<Control>> #silver
+control DatabaseManager as dbm <<Control>> #silver
 
 'Setup persistent objects here
 activate u

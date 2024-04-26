@@ -10,12 +10,24 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary WebBrowser as wb <<Boundary>>
-control ChallengeRoute as cr <<Control>>
-control DatabaseManager as db <<Control>>
-boundary SMTPClient as sc <<Boundary>>
+actor User as u <<Actor>> #red
+boundary WebBrowser as wb <<Boundary>> #red
+control ChallengeRoute as cr <<Control>> #silver
+control DatabaseManager as db <<Control>> #silver
+boundary SMTPClient as sc <<Boundary>> #silver
 
 'Setup persistent objects here
 activate u

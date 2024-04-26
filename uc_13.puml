@@ -10,12 +10,24 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary CheckKeyRevocationScreen as krs <<Boundary>>
-control CheckKeyRevocationRoute as krr <<Control>>
-control DatabaseManager as dbm <<Control>>
+actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary CheckKeyRevocationScreen as krs <<Boundary>> #red
+control CheckKeyRevocationRoute as krr <<Control>> #silver
+control DatabaseManager as dbm <<Control>> #silver
 
 'Setup persistent objects here
 activate u

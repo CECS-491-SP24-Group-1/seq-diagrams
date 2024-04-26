@@ -10,15 +10,27 @@ skinparam sequence {
     LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary LoginWindow as lw <<Boundary>>
-control CryptoAPI as ca <<Control>>
-control VaultManager as vm <<Control>>
-entity Vault as v <<Entity>>
-control LoginRoute as lr <<Control>>
-control DatabaseManager as db <<Control>>
+actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary LoginWindow as lw <<Boundary>> #red
+control CryptoAPI as ca <<Control>> #red
+control VaultManager as vm <<Control>> #red
+entity Vault as v <<Entity>> #red
+control LoginRoute as lr <<Control>> #silver
+control DatabaseManager as db <<Control>> #silver
 
 'Setup persistent objects here
 activate u 

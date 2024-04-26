@@ -10,13 +10,25 @@ skinparam sequence {
 	LifeLineBackgroundColor #Gainsboro
 }
 
+'Add a legend plus styling
+skinparam legend {
+	backgroundColor #GhostWhite
+	entrySeparator #GhostWhite
+}
+
+legend top
+	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
+	|<#red> | Clientside|
+	|<#silver> | Serverside|
+endlegend
+
 'Setup the objects involved here
-actor User as u <<Actor>>
-boundary App as a <<Boundary>>
-boundary ProvideSecretsScreen as pss <<Boundary>>
-boundary GeneratePassphraseScreen as gps <<Boundary>>
-control PassphraseRoute as pr <<Control>>
-boundary ServerStorage as ss <<Boundary>>
+actor User as u <<Actor>> #red
+boundary App as a <<Boundary>> #red
+boundary ProvideSecretsScreen as pss <<Boundary>> #red
+boundary GeneratePassphraseScreen as gps <<Boundary>> #red
+control PassphraseRoute as pr <<Control>> #silver
+boundary ServerStorage as ss <<Boundary>> #silver
 
 'Setup persistent objects here
 activate u
@@ -32,7 +44,7 @@ activate pss
 'activate pss
 'pss -> u: promptForSecret
 
-== invocation of this use case occurs ==
+'== invocation of this use case occurs ==
 
 
 u -> pss: selects "Passphrase" \nas the secret type
@@ -63,7 +75,7 @@ u -> gps: clicks "Ok"
 deactivate gps
 
 'Cleanup
-== flow handed back to calling use case ==
+'== flow handed back to calling use case ==
 
 'Cleanup
 'u -> pss: provides passphrase \nclicks "Confirm"
