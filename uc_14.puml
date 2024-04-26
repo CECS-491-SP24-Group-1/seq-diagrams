@@ -98,7 +98,7 @@ rcw -> r: Prevent further input and \nshow the warning about the \nconversation 
 
 'Recipient can choose to honor the request or ignore it
 'Case 1: The request is ignored
-group "Recipient Ignores Deletion Request"
+group Recipient Ignores Conversation Deletion Request
 	r ->X rcw: Any changes made by the user \nare blocked. The conversation \nis read-only at this point.
 	rnote over rvm
 		The recipient can choose
@@ -112,7 +112,7 @@ group "Recipient Ignores Deletion Request"
 end
 
 'Case 2: The request is honored
-group "Recipient Honors Deletion Request"
+group Recipient Honors Conversation Deletion Request
 	'The user clicks on the options button for the chat room and selects “Delete”. This is the responding party.
 	r -> rd: Responder clicks on "Delete" \noption in the conversation \nsettings
 
