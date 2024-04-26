@@ -76,11 +76,17 @@ uss --> a: return: deletion successful
 deactivate uss
 a -> a: forceLogout()
 
+'Cleanup
 note over a
-  The account has been marked for deletion.
-  User is navigated back to the Sign Up page.
+	User is navigated back to the Sign Up page.
+end note
+
+note over db
+	The account has been marked for deletion.
+	Next time the server does an account purge,
+	this user's account will be swept up and 
+	deleted.
 end note
 '--- FLOW OF CONTROL ENDS HERE   ---
-
 
 @enduml
