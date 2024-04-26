@@ -24,58 +24,62 @@ endlegend
 
 'Setup the objects
 actor User as u <<Actor>> #red
-boundary UserEmail as ue <<Boundary>> #red
 boundary App as a <<Boundary>> #red
 boundary UserSettingsScreen as uss <<Boundary>> #red
-boundary DeleteUserRoute as dur <<Boundary>> 
-control DatabaseManager as db <<Control>>
-boundary Database as db <<Boundary>>
+control VaultManager as vm <<Control>> #red
+entity Vault as v <<Entity>> #red
+control DeleteUserRoute as dur <<Control>> #silver
+control DatabaseManager as db <<Control>> #silver
 
 'Setup persistent objects here
 activate u
 activate a
+activate vm
+activate v
+activate dur
 activate db
-activate ue
 
 '--- FLOW OF CONTROL STARTS HERE ---
-
-'User navigates to the "User settings page
-u -> a: <user navigates to the User Settings page>
+'User navigates to the "User Settings" page.
+u -> a: User navigates to the \n"User Settings" page
 a -> uss: show()
 activate uss
 
-'User clicks "Delete Account" button
-u -> uss: <user clicks "Delete Account" button>
+'User clicks "Delete Account" button.
+u -> uss: User clicks "Delete \nAccount" button
+uss -> u: Warns the user that \nthis action cannot be \nundone
+u -> uss: Clicks "yes" on the \nconfirmation prompt
 
-'Users device sends a deletion request to the server
-uss -> dur: POST /api/users/deleteuser json::{query}
-activate dur
+'Users device sends a deletion request to the server.
+uss -> dur: POST /api/users/delete json::{query}
 
-'Server challenges user to verify the authenticity of the user
-=="Use Case #8: Challenge User" is called to verify the authenticity of the user==
+'Server challenges user to verify the authenticity of the user.
+'Server sends an email containing a link to confirm account deletion.
+=="Use Case #8a: Challenge User - Email" is called to send a deletion link to the user==
 
-'User recieves the email and clicks the link to finish the process of deleting account
-dur -> ue: sendEmail(useremail, deleteAccountSuccessMessage)
-ue -> dur: User uses email link to confirm deletion of their account
-dur -> db: DELETE /api/users/deleteuser json::{query}
+'User receives the email and clicks the link to finish the process of deleting account
+u --> dur: GET /api/challenges/:id/solve?sol=:payload&token=:token&next=deleteAcc
 
 'Database manager marks the account for deletion and sends the user a notification via email
-db -> db: Database manager marks account in the database for deletion
+dur -> db: SET token.subject.flags.should_purge = true,\n\ttoken.subject.flags.purge_by(\n\t\ttime.Now().Add(7, DAYS)\n\t)
 
-'Database manager sends notification email once account is marked for deletion
-db --> dur: return: deleteAccountSuccess
+'Do cleanup serverside.
+dur --> uss: RESP json::{deleteAccountSuccess}
+uss -> vm: delete(vault)
+vm -> v: destroy()
+deactivate v
+uss -> vm: destroy()
+deactivate vm
+uss --> a: return: deletion successful
+
+'User is navigated to the “Sign Up” page.
 deactivate uss
-
-' NOTE: Not sure if this part is correct because route no longer exisis
-dur --> a: RESP json::{deleteAccountSuccess}
 a -> a: forceLogout()
 
 note over a
   The account has been marked for deletion.
   User is navigated back to the Sign Up page.
 end note
-
-dur --> ue: sendEmail(useremail, deleteAccountSuccessMessage)
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 
