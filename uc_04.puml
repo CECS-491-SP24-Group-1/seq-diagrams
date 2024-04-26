@@ -18,52 +18,88 @@ skinparam legend {
 
 legend top
 	<#GhostWhite,#GhostWhite>|	|= __Legend__ |
-	|<#red> | Clientside|
-	|<#silver> | Serverside|
+	|<#red> | Sender|
+	|<#silver> | Server|
+	|<#blue> | Receiver|
 endlegend
 
-
 'Setup the objects involved here
-actor User as u <<Actor>> #red
-boundary App as a <<Boundary>> #red
-boundary ChatRoom as cr <<Boundary>>
-control DatabaseManager as dm <<Control>>
-boundary Database as db <<Database>>
-
+actor Sender as s <<Actor>> #red
+boundary SenderConversationWindow as scw <<Boundary>> #red
+control SenderConversationManager as scm <<Control>> #red
+control ChatRouter as cr <<Control>> #silver
+control DatabaseManager as db <<Control>> #silver
+control ReceiverConversationManager as rcm <<Control>> #blue
+boundary ReceiverConversationWindow as rcw <<Boundary>> #blue
 
 'Setup persistent objects here
-activate u
-activate a 
-
+activate s
+activate scw
+activate scm
+activate cr
+activate db
+activate rcm
+activate rcw
 
 '--- FLOW OF CONTROL STARTS HERE ---
-'User is logged in
-u -> a: <User is already logged in>
+'User right clicks/hard presses on a message to open up its menu and selects delete.
+s -> scw: Right clicks/hard presses on a \nmessage and selects "Delete".
+scw -> s: Asks if they want to delete \nthe message
+s -> scw: Clicks "yes" on the \nconfirmation prompt
+scw -> scm: delete(message.id)
 
-'User accesses existing chat and clicks options menu
-u -> cr: <User is in an exsisting chatroom and clicks option menu button>
-activate cr
+'The user’s device creates a deletion request for the other user and calls Use Case 15: Send Chat to pass the request to the other party.
+rnote over s, scm
+	"Use Case #15: Send Message" is called to issue a message deletion request to the other party using the following methods:
+endrnote
+scm -> scm: requestMessageDelete() -> \n\tEMessage msgDeletionReq
+scm -> cr: POST /api/conversations/:roomId/send \n\tjson::{recvId, msgDeletionReq}
 
-'User clicks "Delete Chat" button and confirms that they want to delete the chat
-u -> cr: User clicks "Delete Chat" button and confirms that they want to delete the chat
+'The message is removed from the sender's conversation window.
+scm -> scw: pop(messageId)
+rnote over scw
+	The target message is deleted
+	and replaced with "Message 
+	Deleted" text
+endrnote
 
-'Chatroom sends delete chat request to the database manager
-cr -> dm: delete chat request gets sent to the database manager with the chats UUID
-activate dm
+'===================== receiver's turn to act
 
-'Database manager marks the chat as "skipped" to maintain the continuity of the ratcheting key system in place
-dm -> db: database manager marks the chat as "skipped" to maintain the ratcheting key system
-activate db
+'The responding user receives the chat via Use Case 16: Receive Chat and detects the message deletion request.
+rnote over rcw, rcm
+	"Use Case #16: Receive Message" is called to get the deletion 
+	request on the receiver side, but a read receipt is not sent.
+	The following 2 cases arise:
+endrnote
 
-'Database manager hides the chat from the user
-dm -> cr: database hides the chat from the user
+'The message deletion request is honored by the server if the user is offline.
+group The Receiver Is Offline
+	'The server pops the message off the queue and it's skipped.
+	cr -> db: recvId.messageQueue.pop(roomId, messageId)
+	rnote over cr, db
+		The message is deleted before the receiver sees it.
+		A notification of this occurring is sent instead to
+		avoid breaking the receiving ratchet on the receiver
+		side.
+	endrnote
+end
 
-'Database manager notifies the user that the chat has been deleted
-dm -> u: database manager notifies the user that the chat has been deleted
-
-
-
-
+'The message deletion request is honored by the receiver if the user is online.
+group The Receiver Is Online
+	'The receiver pops the message off the chat log.
+	cr --> rcm: <MSG containing deletion request is received>
+	rcm -> rcw: pop(messageId)
+	rnote over rcw
+		The target message is deleted
+		and replaced with "Message 
+		Deleted" text
+	endrnote
+	rnote over cr, db
+		The message is deleted, which may have already been 
+		seen by the user. A placeholder of where the message
+		was takes the message's place.
+	endrnote
+end
 '--- FLOW OF CONTROL ENDS HERE   ---
 
 @enduml
