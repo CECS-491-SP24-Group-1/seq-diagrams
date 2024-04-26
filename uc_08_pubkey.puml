@@ -1,5 +1,5 @@
-@startuml uc08_pubkey
-title "Use Case #8: Challenge User - Public Key"
+@startuml uc08b_pubkey
+title "Use Case #8b: Challenge User - Public Key"
 
 'Styling goes here
 hide footbox

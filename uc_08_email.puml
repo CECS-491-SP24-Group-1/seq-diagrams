@@ -1,5 +1,5 @@
-@startuml uc08_email
-title "Use Case #8: Challenge User - Email"
+@startuml uc08a_email
+title "Use Case #8a: Challenge User - Email"
 
 'Styling goes here
 hide footbox
