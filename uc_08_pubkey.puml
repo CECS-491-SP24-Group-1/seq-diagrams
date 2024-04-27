@@ -122,7 +122,7 @@ group User email is also verified
 end
 
 'Email the user to inform of successful challenge completion and next steps.
-cr -> cr: composeEmail(flag_statuses & more) \n\t-> emailContent
+cr -> cr: composeEmail(flag_status, ad) \n\t-> emailContent
 cr -> sc: sendEmail(token.subject.email, emailContent)
 
 'Cleanup and return the feedback to the user

@@ -75,7 +75,7 @@ endrnote
 'The message deletion request is honored by the server if the user is offline.
 group The Receiver Is Offline
 	'The server pops the message off the queue and it's skipped.
-	cr -> db: recvId.messageQueue.pop(roomId, messageId)
+	cr -> db: recvId.messageQueue.pop(\n\troomId, messageId\n)
 	rnote over cr, db
 		The message is deleted before the receiver sees it.
 		A notification of this occurring is sent instead to
