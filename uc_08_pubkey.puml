@@ -50,7 +50,7 @@ u -> a: requests to solve a \nchallenge by its ID
 a -> cr: GET /api/challenges/:id/request
 
 'Server checks if the challenge is valid
-cr -> db: QUERY challenge.id
+cr -> db: QUERY(challenge.id)
 
 'Case 1: The challenge doesn't exist
 group Nonexistant challenge
@@ -92,11 +92,11 @@ ca --> a: return: signature
 a -> cr: POST /api/challenges/:id/solve json::{challenge_payload, signature}
 
 'The server queries the database for the challenge info
-cr -> db: QUERY challenge.id
+cr -> db: QUERY(challenge.id)
 db --> cr: return: Challenge
 
 'The server queries the database for the user flags public key, and email.
-cr -> db: QUERY token.subject.flags, token.subject.pubkey, token.subject.email
+cr -> db: QUERY(\n\ttoken.subject.flags, \n\ttoken.subject.pubkey, token.subject.email\n)
 db --> cr: return: flags, pubkey, email
 
 'The server verifies the signature against the known public key.
@@ -113,20 +113,20 @@ end
 
 'Default case: the verification succeeds. 
 'Mark the user's public key as verified
-cr -> db: MODIFY token.subject, token.subject.pubkey_verified = true
+cr -> db: MODIFY(\n\ttoken.subject, \n\ttoken.subject.pubkey_verified = true\n)
 
 'Also unmark the user's account for deletion if the email is verified.
 group User email is also verified
-	cr -> db: MODIFY token.subject, token.subject.should_purge = false
-	cr -> db: MODIFY token.subject, token.subject.purge_by = nil
+	cr -> db: MODIFY(\n\ttoken.subject, \n\ttoken.subject.should_purge = false\n)
+	cr -> db: MODIFY(\n\ttoken.subject, \n\ttoken.subject.purge_by = nil\n)
 end
 
 'Email the user to inform of successful challenge completion and next steps.
-cr -> cr: composeEmail(flag_statuses & more) -> emailContent
+cr -> cr: composeEmail(flag_statuses & more) \n\t-> emailContent
 cr -> sc: sendEmail(token.subject.email, emailContent)
 
 'Cleanup and return the feedback to the user
-cr -> db: DELETE challenge.id
+cr -> db: DELETE(challenge.id)
 cr --> a: RESP json::{success, pubkey_verified_successfully}
 '--- FLOW OF CONTROL ENDS HERE   ---
 

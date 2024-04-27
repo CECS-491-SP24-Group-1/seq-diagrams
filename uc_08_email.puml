@@ -42,7 +42,7 @@ u -> wb: visit: challenge URL from email
 wb -> cr: GET /api/challenges/:id/solve?sol=:payload&token=:token
 
 'Server checks if the challenge is valid
-cr -> db: QUERY challenge.id
+cr -> db: QUERY(challenge.id)
 
 'Case 1: The challenge doesn't exist
 group Nonexistant challenge
@@ -70,24 +70,24 @@ db --> cr: return: Challenge
 cr -> cr: validate(challenge)
 
 'Query the database for the user flags.
-cr -> db: QUERY token.subject.flags, token.subject.email
+cr -> db: QUERY(\n\ttoken.subject.flags, \n\ttoken.subject.email\n)
 db --> cr: return: flags, pubkey, email
 
 'Mark the user's email as verified
-cr -> db: MODIFY token.subject, token.subject.email_verified = true
+cr -> db: MODIFY(\n\ttoken.subject, \n\ttoken.subject.email_verified = true\n)
 
 'Also unmark the user's account for deletion if the public key is verified.
 group User public key is also verified
-	cr -> db: MODIFY token.subject, token.subject.should_purge = false
-	cr -> db: MODIFY token.subject, token.subject.purge_by = nil
+	cr -> db: MODIFY(\n\ttoken.subject, \n\ttoken.subject.should_purge = false\n)
+	cr -> db: MODIFY(\n\ttoken.subject, \n\ttoken.subject.purge_by = nil\n)
 end
 
 'Email the user to inform of successful challenge completion and next steps.
-cr -> cr: composeEmail(flag_statuses & more) -> emailContent
+cr -> cr: composeEmail(flag_statuses & more) \n\tt-> emailContent
 cr -> sc: sendEmail(token.subject.email, emailContent)
 
 'Cleanup and return the feedback to the user
-cr -> db: DELETE challenge.id
+cr -> db: DELETE(challenge.id)
 cr --> wb: RESP json::{success, email_verified_successfully}
 '--- FLOW OF CONTROL ENDS HERE   ---
 

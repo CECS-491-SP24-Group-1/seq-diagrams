@@ -61,7 +61,7 @@ uss -> dur: POST /api/users/delete json::{query}
 u --> dur: GET /api/challenges/:id/solve?sol=:payload&token=:token&next=deleteAcc
 
 'Database manager marks the account for deletion and sends the user a notification via email
-dur -> db: SET token.subject.flags.should_purge = true,\n\ttoken.subject.flags.purge_by(\n\t\ttime.Now().Add(7, DAYS)\n\t)
+dur -> db: SET(token.subject.flags.should_purge = true,\n\ttoken.subject.flags.purge_by(\n\t\ttime.Now().Add(7, DAYS)\n\t)\n)
 
 'Do cleanup serverside.
 dur --> uss: RESP json::{deleteAccountSuccess}

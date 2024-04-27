@@ -58,7 +58,7 @@ ca -> ca: sk.sign(nonce) -> signature
 lw -> lr: POST /api/users/login json::{user_info, nonce, signature}
 
 'The server verifies the signature against the known public key.
-lr -> db: QUERY user_info.id, user_info.pk
+lr -> db: QUERY(user_info.id, user_info.pk)
 db --> lr: return: PublicKey pk
 lr -> lr: pk.verify(signature, nonce)
 
@@ -73,7 +73,7 @@ end
 
 'Server issues a token for the user, establishing the existence of the login session.
 lr -> lr: issueToken(user_info.id) -> token
-lr -> db: PUT user_info.tokens.append(token)
+lr -> db: PUT(user_info.tokens.append(token))
 
 'Server sends the token to the user, confirming the success of the login
 lr --> lw: RESP json::{success, token}

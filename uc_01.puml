@@ -65,7 +65,7 @@ rw -> rur: POST /api/users/register json::{user_info}
 
 'Server checks if the account already exists
 rur -> rur: checkValidity(username, email, pubkey)
-rur -> db: QUERY username|email
+rur -> db: QUERY(username|email)
 
 group User exists
 	db --> rur: return: username exists || email exists
@@ -83,13 +83,13 @@ group User doesn't exist
 	db --> rur: return: no record for \nusername or email
 	rur -> rur: createUser(options) -> user
 	rur -> rur: createTempAuthToken() -> token \nuser.tokens.append(token)
-	rur -> db: PUT user
+	rur -> db: PUT(user)
 	rur -> rur: generateChallenges(email, pk) \n\t-> eChall, pkChall
 
 	'Server sends an email to the user to confirm creation of the account.
 	rur -> rur: composeEmail(eChall) \n\t-> emailContent
 	rur -> sc: sendEmail(user.email, emailContent)
-	rur -> db: PUT eChall, pkChall
+	rur -> db: PUT(eChall, pkChall)
 
 	'Server sends the response back and it's confirmed.
 	rur --> rw: RESP json::{success, user.id, redact(user.email), challengeIDs, token}
