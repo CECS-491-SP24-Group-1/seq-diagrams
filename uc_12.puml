@@ -45,7 +45,7 @@ u -> lus: provides valid username or\n UUID; Clicks "Submit" button
 
 'Server responds with user’s public key, username, and UUID.
 lus -> lur: POST /api/users/lookup json::{query}
-lur -> dbm: QUERY UUID|username
+lur -> dbm: QUERY(UUID|username)
 
 group record exists
 

@@ -45,7 +45,7 @@ u -> krs: provides valid public key or \nfingerprint; Clicks "Submit" button
 
 'The server queries the revocation database for the key.
 krs -> krr: POST /api/users/check_key_revocation json::{query}
-krr -> dbm: QUERY public_key
+krr -> dbm: QUERY(public_key)
 
 'The server responds back with the revocation status of the key.
 group record exists; key is not revoked
