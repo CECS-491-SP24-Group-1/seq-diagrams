@@ -1,5 +1,5 @@
 @startuml uc04
-title "Use Case #4: Delete Chat"
+title "Use Case #4: Delete Message"
 
 'Styling goes here
 hide footbox
